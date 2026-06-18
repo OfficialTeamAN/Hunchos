@@ -1,0 +1,100 @@
+@import "tailwindcss";
+
+@theme {
+  --color-accent: #e63946;
+  --color-bg-darker: #060606;
+  --color-bg-dark: #0c0c0c;
+  --color-bg-light: #111111;
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-display: 'Outfit', system-ui, -apple-system, sans-serif;
+}
+
+/* Reset and base */
+html, body {
+  background-color: var(--color-bg-darker);
+  color: #ffffff;
+  overflow-x: hidden;
+  font-family: var(--font-sans);
+}
+
+/* Lenis smooth scrolling */
+html.lenis, html.lenis body {
+  height: auto;
+}
+
+.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+.lenis-stopped {
+  overflow: hidden;
+}
+
+.lenis-scrolling iframe {
+  pointer-events: none;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-bg-darker);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* Custom text clip reveal support */
+.clip-reveal {
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+}
+
+/* Hide default input outline on search */
+input:focus {
+  outline: none;
+}
+
+/* 3D Perspective Layout Shift styles */
+.perspective-container {
+  perspective: 1500px;
+  overflow: hidden;
+  background-color: #030303;
+  width: 100%;
+  min-h: 100vh;
+}
+
+.perspective-content {
+  transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1), border-radius 0.8s cubic-bezier(0.16, 1, 0.3, 1), border 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  transform-style: preserve-3d;
+  transform-origin: right center;
+  border: 1px solid transparent;
+}
+
+.perspective-open {
+  transform: rotateY(-18deg) scale(0.82) translateX(120px) translateZ(-150px);
+  border-radius: 20px;
+  border-color: rgba(255, 255, 255, 0.05);
+  pointer-events: none;
+  box-shadow: -30px 30px 70px rgba(0, 0, 0, 0.9);
+}
+
+/* Custom styles like marquee animation */
+@keyframes marquee {
+  0% { transform: translateX(0%); }
+  100% { transform: translateX(-50%); }
+}
+
+.animate-marquee {
+  display: flex;
+  width: max-content;
+  animation: marquee 25s linear infinite;
+}
