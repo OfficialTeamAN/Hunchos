@@ -93,6 +93,101 @@ function AuroraCanvas() {
 }
 
 /* ============================================================================
+   CYBERNETIC GLOBE WATERMARK COMPONENT
+   Renders a futuristic glowing vector Globe for Stake.com.
+   ============================================================================ */
+function GlobeWatermark() {
+  return (
+    <svg 
+      width="145" 
+      height="145" 
+      viewBox="0 0 110 110" 
+      fill="none" 
+      xmlns="http://www.w3.org/2000/svg" 
+      className="filter brightness-[0.8] group-hover:brightness-125 drop-shadow-[0_0_12px_rgba(0,180,216,0.3)] group-hover:drop-shadow-[0_0_28px_rgba(0,180,216,0.85)] group-hover:scale-[1.06] transition-all duration-500 ease-out"
+    >
+      <defs>
+        <linearGradient id="globeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#00f2fe" />
+          <stop offset="100%" stopColor="#4facfe" />
+        </linearGradient>
+      </defs>
+      {/* Outer Ring */}
+      <circle cx="55" cy="55" r="52" stroke="url(#globeGrad)" strokeWidth="1.5" opacity="0.4" />
+      <circle cx="55" cy="55" r="44" stroke="url(#globeGrad)" strokeWidth="1" strokeDasharray="4 4" opacity="0.25" />
+      
+      {/* Latitudes */}
+      <line x1="4" y1="55" x2="106" y2="55" stroke="url(#globeGrad)" strokeWidth="1" opacity="0.35" />
+      <path d="M12 35C30 43 80 43 98 35" stroke="url(#globeGrad)" strokeWidth="1" opacity="0.25" />
+      <path d="M12 75C30 67 80 67 98 75" stroke="url(#globeGrad)" strokeWidth="1" opacity="0.25" />
+      <path d="M22 20C40 26 70 26 88 20" stroke="url(#globeGrad)" strokeWidth="0.75" opacity="0.2" />
+      <path d="M22 90C40 84 70 84 88 90" stroke="url(#globeGrad)" strokeWidth="0.75" opacity="0.2" />
+      
+      {/* Longitudes */}
+      <ellipse cx="55" cy="55" rx="32" ry="52" stroke="url(#globeGrad)" strokeWidth="1" opacity="0.3" />
+      <ellipse cx="55" cy="55" rx="16" ry="52" stroke="url(#globeGrad)" strokeWidth="1" opacity="0.25" />
+      <line x1="55" y1="4" x2="55" y2="106" stroke="url(#globeGrad)" strokeWidth="1.2" opacity="0.4" />
+
+      {/* Nodes / Stars */}
+      <circle cx="55" cy="19" r="1.5" fill="#ffffff" opacity="0.85" />
+      <circle cx="55" cy="91" r="1.5" fill="#ffffff" opacity="0.85" />
+      <circle cx="23" cy="55" r="1.5" fill="#ffffff" opacity="0.85" />
+      <circle cx="87" cy="55" r="1.5" fill="#ffffff" opacity="0.85" />
+      <circle cx="39" cy="35" r="1.2" fill="#ffffff" opacity="0.75" />
+      <circle cx="71" cy="75" r="1.2" fill="#ffffff" opacity="0.75" />
+    </svg>
+  );
+}
+
+/* ============================================================================
+   MINIMALIST USA FLAG COMPONENT
+   Renders a clean monochrome/translucent vector US Flag.
+   ============================================================================ */
+function USAFlag() {
+  return (
+    <svg 
+      width="165" 
+      height="87" 
+      viewBox="0 0 74 39" 
+      fill="none" 
+      xmlns="http://www.w3.org/2000/svg" 
+      className="filter grayscale-[55%] brightness-[0.7] group-hover:grayscale-0 group-hover:brightness-110 drop-shadow-[0_0_12px_rgba(59,130,246,0.25)] group-hover:drop-shadow-[0_0_28px_rgba(59,130,246,0.8)] group-hover:scale-[1.06] transition-all duration-500 ease-out"
+    >
+      {/* 13 Stripes: Red and White */}
+      {Array.from({ length: 13 }).map((_, i) => {
+        const isRed = i % 2 === 0;
+        return (
+          <rect
+            key={i}
+            x="0"
+            y={i * 3}
+            width="74"
+            height="1.5"
+            fill={isRed ? "#B22234" : "#ffffff"}
+            opacity={isRed ? 0.75 : 0.5}
+          />
+        );
+      })}
+      {/* Canton (Blue field) */}
+      <rect x="0" y="0" width="32" height="21" fill="#3C3B6E" opacity="0.85" rx="0.5" />
+      {/* Stars Grid */}
+      {Array.from({ length: 5 }).map((_, r) =>
+        Array.from({ length: 6 }).map((_, c) => (
+          <circle
+            key={`${r}-${c}`}
+            cx={3.2 + c * 5.1}
+            cy={2.5 + r * 4}
+            r="0.8"
+            fill="#ffffff"
+            opacity={0.95}
+          />
+        ))
+      )}
+    </svg>
+  );
+}
+
+/* ============================================================================
    REAL-TIME GRADIENT GLARE OVERLAY
    Uses the active TiltContext to sweep a colored spotlight on mouse move.
    ============================================================================ */
@@ -133,7 +228,7 @@ export default function Signup() {
     {
       type: 'com',
       name: 'Stake.com',
-      logo: '/stake_clean.png',
+      logo: '/stake_com_clean.png',
       url: 'https://www.stake.com/?c=Hunchos',
       badge: 'INTERNATIONAL TIER',
       code: 'Hunchos',
@@ -151,7 +246,7 @@ export default function Signup() {
     {
       type: 'us',
       name: 'Stake.us',
-      logo: '/stakeus.png',
+      logo: '/stake_us_clean.png',
       url: 'https://www.stake.us/?c=Hunchos007&offer=hunchos007',
       badge: 'US REGION PLAYERS',
       code: 'Hunchos007',
@@ -227,13 +322,32 @@ export default function Signup() {
                     </span>
                   </div>
 
-                  {/* Platform Logo */}
-                  <TiltParallax depth={1.1} className="flex items-center my-4">
+                  {/* Platform Logo & Region Decoration */}
+                  <TiltParallax depth={1.1} className="relative flex items-center justify-center my-6 w-full h-24">
+                    {/* The Logo */}
                     <img 
                       src={platform.logo} 
                       alt={platform.name} 
-                      className="h-14 md:h-16 w-auto object-contain filter drop-shadow-[0_0_8px_rgba(255,255,255,0.08)] group-hover:scale-[1.03] transition-all duration-500 select-none"
+                      className="h-18 md:h-22 w-auto object-contain filter drop-shadow-[0_0_12px_rgba(255,255,255,0.12)] group-hover:scale-[1.05] transition-all duration-500 select-none relative z-10"
                     />
+
+                    {/* Stake.com Globe Icon behind it */}
+                    {platform.type === 'com' && (
+                      <motion.div
+                        animate={{ rotate: 360 }}
+                        transition={{ repeat: Infinity, duration: 35, ease: "linear" }}
+                        className="absolute inset-0 flex items-center justify-center opacity-25 pointer-events-none select-none z-0 group-hover:opacity-55 transition-all duration-500"
+                      >
+                        <GlobeWatermark />
+                      </motion.div>
+                    )}
+
+                    {/* Stake.us USA Flag behind it */}
+                    {platform.type === 'us' && (
+                      <div className="absolute inset-0 flex items-center justify-center opacity-25 pointer-events-none select-none z-0 group-hover:opacity-55 transition-all duration-500">
+                        <USAFlag />
+                      </div>
+                    )}
                   </TiltParallax>
 
                   {/* Custom Icon Perks list */}

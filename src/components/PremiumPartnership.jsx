@@ -158,18 +158,26 @@ function ConceptSilk({ mousePos }) {
           </Link>
         </div>
         
-        {/* Sleek Floating Glass Holder */}
+        {/* Sleek Floating Glass Holders */}
         <div 
-          className="flex flex-col items-center justify-center self-center md:self-auto relative group mt-6 md:mt-0"
+          className="flex gap-4 items-center justify-center self-center md:self-auto relative group mt-6 md:mt-0"
           style={{ transform: 'translateZ(45px)' }}
         >
-          <div className="w-36 h-36 bg-white/[0.01] backdrop-blur-[4px] border border-white/5 rounded-2xl flex flex-col items-center justify-center shadow-2xl transition-all duration-500 group-hover:border-white/10 relative">
+          <div className="w-32 h-32 bg-white/[0.01] backdrop-blur-[4px] border border-white/5 rounded-2xl flex flex-col items-center justify-center p-3 shadow-2xl transition-all duration-500 hover:border-white/10 relative">
             <img 
-              src="/stake_clean.png" 
-              alt="Stake logo" 
-              className="h-10 w-auto object-contain filter drop-shadow-[0_0_8px_rgba(255,255,255,0.12)] group-hover:scale-105 transition-all duration-500 select-none" 
+              src="/stake_com_clean.png" 
+              alt="Stake.com logo" 
+              className="h-10 w-auto object-contain filter drop-shadow-[0_0_8px_rgba(255,255,255,0.1)] group-hover:scale-105 transition-all duration-500 select-none" 
             />
-            <span className="text-[7px] font-mono tracking-[0.25em] text-white/20 uppercase mt-4 select-none group-hover:text-white/40 transition-colors">STAKE.COM</span>
+            <span className="text-[6.5px] font-mono tracking-[0.2em] text-white/20 uppercase mt-4 select-none group-hover:text-white/40 transition-colors">STAKE.COM</span>
+          </div>
+          <div className="w-32 h-32 bg-white/[0.01] backdrop-blur-[4px] border border-white/5 rounded-2xl flex flex-col items-center justify-center p-3 shadow-2xl transition-all duration-500 hover:border-white/10 relative">
+            <img 
+              src="/stake_us_clean.png" 
+              alt="Stake.us logo" 
+              className="h-10 w-auto object-contain filter drop-shadow-[0_0_8px_rgba(255,255,255,0.1)] group-hover:scale-105 transition-all duration-500 select-none" 
+            />
+            <span className="text-[6.5px] font-mono tracking-[0.2em] text-white/20 uppercase mt-4 select-none group-hover:text-white/40 transition-colors">STAKE.US</span>
           </div>
         </div>
       </div>
@@ -298,15 +306,25 @@ function ConceptLens({ mousePos }) {
           className="lg:col-span-4 p-8 md:p-12 flex flex-col justify-center items-center text-center relative overflow-hidden bg-white/[0.005] border-t lg:border-t-0 lg:border-l border-white/5"
           style={{ transform: 'translateZ(40px)' }}
         >
-          {/* Frosted Lens Circle */}
-          <div className="w-40 h-40 bg-white/[0.02] backdrop-blur-[16px] border border-white/10 rounded-full flex items-center justify-center p-8 relative shadow-2xl group transition-all duration-500 hover:border-white/25 hover:shadow-white/5">
-            <img 
-              src="/stake_clean.png" 
-              alt="Stake" 
-              className="w-full object-contain filter drop-shadow-[0_0_10px_rgba(255,255,255,0.15)] group-hover:scale-105 transition-all select-none relative z-10" 
-            />
+          <div className="flex gap-4 justify-center items-center w-full">
+            {/* Stake.com Lens */}
+            <div className="w-28 h-28 bg-white/[0.02] backdrop-blur-[12px] border border-white/10 rounded-full flex items-center justify-center p-4 relative shadow-2xl group transition-all duration-500 hover:border-white/25 hover:shadow-white/5">
+              <img 
+                src="/stake_com_clean.png" 
+                alt="Stake.com" 
+                className="h-10 w-auto object-contain filter drop-shadow-[0_0_8px_rgba(255,255,255,0.12)] group-hover:scale-105 transition-all select-none" 
+              />
+            </div>
+            {/* Stake.us Lens */}
+            <div className="w-28 h-28 bg-white/[0.02] backdrop-blur-[12px] border border-white/10 rounded-full flex items-center justify-center p-4 relative shadow-2xl group transition-all duration-500 hover:border-white/25 hover:shadow-white/5">
+              <img 
+                src="/stake_us_clean.png" 
+                alt="Stake.us" 
+                className="h-10 w-auto object-contain filter drop-shadow-[0_0_8px_rgba(255,255,255,0.12)] group-hover:scale-105 transition-all select-none" 
+              />
+            </div>
           </div>
-          <span className="mt-4 font-mono text-[7px] text-white/20 tracking-[0.25em] uppercase select-none">AUTHENTIC PARTNER</span>
+          <span className="mt-4 font-mono text-[7px] text-white/20 tracking-[0.25em] uppercase select-none">AUTHENTIC PARTNERS</span>
         </div>
       </div>
 
@@ -411,12 +429,18 @@ function ConceptEclipse({ mousePos }) {
           <span>Official Stake Campaign</span>
         </div>
         
-        {/* Floating white logo right in the center */}
-        <div className="mb-6 relative group" style={{ transform: 'translateZ(40px)' }}>
+        {/* Floating white logos right in the center */}
+        <div className="mb-6 flex gap-6 items-center justify-center relative group" style={{ transform: 'translateZ(40px)' }}>
           <img 
-            src="/stake_clean.png" 
-            alt="Stake Logo" 
-            className="h-9 w-auto object-contain filter drop-shadow-[0_0_8px_rgba(255,255,255,0.1)] group-hover:scale-105 transition-transform duration-500 select-none" 
+            src="/stake_com_clean.png" 
+            alt="Stake.com Logo" 
+            className="h-10 w-auto object-contain filter drop-shadow-[0_0_8px_rgba(255,255,255,0.1)] group-hover:scale-105 transition-transform duration-500 select-none" 
+          />
+          <span className="w-[1px] h-6 bg-white/10 rounded-full" />
+          <img 
+            src="/stake_us_clean.png" 
+            alt="Stake.us Logo" 
+            className="h-10 w-auto object-contain filter drop-shadow-[0_0_8px_rgba(255,255,255,0.1)] group-hover:scale-105 transition-transform duration-500 select-none" 
           />
         </div>
 

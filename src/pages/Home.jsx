@@ -136,6 +136,7 @@ export default function Home() {
       badgeColor: 'text-orange-500/80 border-orange-500/10 bg-orange-500/5',
       number: '01',
       accent: '#f97316',
+      reward: '10',
       svgEmblem: (
         <svg viewBox="0 0 100 100" className="w-12 h-12 opacity-35 group-hover:opacity-100 transition-all duration-700 animate-[spin_35s_linear_infinite]" style={{ stroke: '#f97316', fill: 'none', strokeWidth: 1.2 }}>
           <polygon points="50,15 85,75 15,75" />
@@ -152,6 +153,7 @@ export default function Home() {
       badgeColor: 'text-zinc-400/80 border-zinc-400/10 bg-zinc-400/5',
       number: '02',
       accent: '#a1a1aa',
+      reward: '25',
       svgEmblem: (
         <svg viewBox="0 0 100 100" className="w-12 h-12 opacity-35 group-hover:opacity-100 transition-all duration-700 animate-[spin_40s_linear_infinite_reverse]" style={{ stroke: '#a1a1aa', fill: 'none', strokeWidth: 1.2 }}>
           <rect x="25" y="25" width="50" height="50" transform="rotate(45 50 50)" />
@@ -168,6 +170,7 @@ export default function Home() {
       badgeColor: 'text-yellow-500/80 border-yellow-500/10 bg-yellow-500/5',
       number: '03',
       accent: '#eab308',
+      reward: '50',
       svgEmblem: (
         <svg viewBox="0 0 100 100" className="w-12 h-12 opacity-35 group-hover:opacity-100 transition-all duration-700 animate-[spin_45s_linear_infinite]" style={{ stroke: '#eab308', fill: 'none', strokeWidth: 1.2 }}>
           <polygon points="50,12 83,31 83,69 50,88 17,69 17,31" />
@@ -176,7 +179,7 @@ export default function Home() {
       )
     },
     { 
-      name: 'Diamond VIP', 
+      name: 'Platinum VIP', 
       perks: 'Dedicated host + maximum limits',
       gradient: 'from-sky-950/10 via-sky-900/5 to-transparent',
       borderColor: 'border-sky-500/10 hover:border-sky-500/30',
@@ -184,6 +187,7 @@ export default function Home() {
       badgeColor: 'text-sky-400/80 border-sky-500/10 bg-sky-500/5',
       number: '04',
       accent: '#38bdf8',
+      reward: '100',
       svgEmblem: (
         <svg viewBox="0 0 100 100" className="w-12 h-12 opacity-35 group-hover:opacity-100 transition-all duration-700 animate-[spin_50s_linear_infinite_reverse]" style={{ stroke: '#38bdf8', fill: 'none', strokeWidth: 1.2 }}>
           <polygon points="50,10 63,38 90,50 63,62 50,90 37,62 10,50 37,38" />
@@ -370,9 +374,18 @@ export default function Home() {
 
                     {/* Card Body: Title and Perks */}
                     <div className="mb-6">
-                      <span className={`text-[8px] font-semibold tracking-[0.18em] uppercase border-b pb-0.5 border-current inline-block mb-3 ${rank.badgeColor.split(' ')[0]}`}>
-                        VIP Tier
-                      </span>
+                      <div className="flex justify-between items-end mb-3">
+                        <span className={`text-[8px] font-semibold tracking-[0.18em] uppercase border-b pb-0.5 border-current inline-block ${rank.badgeColor.split(' ')[0]}`}>
+                          VIP Tier
+                        </span>
+                        {/* Level up reward illustration */}
+                        <div className="flex flex-col items-end leading-none">
+                          <span className="text-[7.5px] font-mono tracking-widest text-white/30 uppercase mb-0.5">REWARD</span>
+                          <span className="text-xl font-black font-display tracking-tight text-white" style={{ color: rank.accent }}>
+                            ${rank.reward}
+                          </span>
+                        </div>
+                      </div>
                       <h4 className="text-xl font-bold tracking-tight text-white uppercase mb-2">
                         {rank.name}
                       </h4>

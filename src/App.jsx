@@ -8,6 +8,7 @@ import Home from './pages/Home';
 import Leaderboard from './pages/Leaderboard';
 import Signup from './pages/Signup';
 import Admin from './pages/Admin';
+import DevPortalBanner from './components/DevPortalBanner';
 import { usePerformance } from './components/PerformanceContext';
 import LoadingScreen from './components/LoadingScreen';
 
@@ -70,6 +71,7 @@ function AppContent({ lenisRef }) {
           </Routes>
         </AnimatePresence>
       </main>
+      <DevPortalBanner />
       <Footer />
     </div>
   );

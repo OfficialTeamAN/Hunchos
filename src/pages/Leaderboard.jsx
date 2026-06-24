@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
+import { Link } from 'react-router-dom';
 import { motion, AnimatePresence, useSpring, useMotionValue, useTransform } from 'framer-motion';
 import { Search, X, Flame, Copy, Check, Info } from 'lucide-react';
 import ScrollReveal from '../components/ScrollReveal';
@@ -152,6 +153,7 @@ export default function Leaderboard() {
   const [searchQuery, setSearchQuery] = useState('');
   const [visibleCount, setVisibleCount] = useState(10);
   const [copied, setCopied] = useState(false);
+  const [showHowToEnter, setShowHowToEnter] = useState(false);
 
   // Responsive device state for podium translations
   const [isMobile, setIsMobile] = useState(false);
@@ -338,22 +340,32 @@ export default function Leaderboard() {
               
               <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black tracking-tight font-display text-white uppercase leading-none mb-3">
                 THE STAKE <br />
-                <span className="font-serif italic font-normal text-white/50 text-4xl sm:text-5xl lg:text-6xl lowercase tracking-normal">hub.</span>
+                <span className="font-serif italic font-normal text-white/50 text-4xl sm:text-5xl lg:text-6xl lowercase tracking-normal">leaderboard.</span>
               </h1>
               
-              <div className="flex flex-col gap-3.5 mt-2">
+              <div className="flex flex-col gap-4 mt-2">
                 <p className="text-[10px] font-semibold tracking-widest text-white/30 uppercase leading-relaxed max-w-sm">
                   Daily compilation of referral wagers registered under code Hunchos on Stake.com & Stake.us
                 </p>
                 
-                <button 
-                  onClick={handleCopy}
-                  className="flex items-center gap-2 border border-white/10 hover:border-white px-3.5 py-1.5 text-[9px] text-white transition-all bg-white/5 uppercase rounded-full cursor-pointer font-bold self-start relative overflow-visible mt-2"
-                >
-                  <ConfettiBurst active={copied} />
-                  <span className="relative z-10">Use Referral Code: <span className="text-accent">HUNCHOS</span></span>
-                  {copied ? <Check size={8} className="text-emerald-400 relative z-10" /> : <Copy size={8} className="relative z-10" />}
-                </button>
+                <div className="flex flex-wrap gap-3 mt-1">
+                  <button 
+                    onClick={handleCopy}
+                    className="flex items-center gap-2 border border-white/10 hover:border-white px-4 py-2.5 text-[9px] text-white transition-all bg-white/5 uppercase rounded-full cursor-pointer font-bold relative overflow-visible"
+                  >
+                    <ConfettiBurst active={copied} />
+                    <span className="relative z-10">Use Referral Code: <span className="text-accent">HUNCHOS</span></span>
+                    {copied ? <Check size={8} className="text-emerald-400 relative z-10" /> : <Copy size={8} className="relative z-10" />}
+                  </button>
+
+                  <button 
+                    onClick={() => setShowHowToEnter(true)}
+                    className="flex items-center gap-2 bg-[#818cf8] hover:bg-[#6366f1] text-white px-5 py-2.5 text-[9px] font-bold tracking-widest uppercase rounded-full cursor-pointer transition-all shadow-[0_4px_20px_rgba(99,102,241,0.22)]"
+                  >
+                    <Info size={11} className="text-white" />
+                    <span>HOW TO ENTER</span>
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -700,8 +712,65 @@ export default function Leaderboard() {
           </div>
 
         </div>
-
       </div>
+
+      {/* HOW TO ENTER MODAL OVERLAY */}
+      <AnimatePresence>
+        {showHowToEnter && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-6">
+            {/* Backdrop */}
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowHowToEnter(false)}
+              className="absolute inset-0 bg-black/80 backdrop-blur-md"
+            />
+            
+            {/* Modal Card */}
+            <motion.div 
+              initial={{ scale: 0.95, opacity: 0, y: 15 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.95, opacity: 0, y: 15 }}
+              transition={{ type: "spring", stiffness: 260, damping: 25 }}
+              className="relative w-full max-w-md bg-[#0c0c0d] border border-white/10 rounded-3xl p-8 sm:p-10 shadow-[0_30px_70px_rgba(0,0,0,0.9)] z-10 flex flex-col text-center"
+            >
+              {/* Close Button */}
+              <button 
+                onClick={() => setShowHowToEnter(false)}
+                className="absolute top-4 right-4 text-white/30 hover:text-white cursor-pointer transition-colors"
+                aria-label="Close modal"
+              >
+                <X size={16} />
+              </button>
+
+              {/* Icon Decoration */}
+              <div className="w-12 h-12 rounded-full border border-[#818cf8]/20 bg-[#818cf8]/5 text-[#818cf8] flex items-center justify-center mx-auto mb-6">
+                <Info size={20} />
+              </div>
+
+              {/* Title */}
+              <h3 className="text-2xl font-black font-display tracking-tight text-white uppercase mb-4">
+                HOW TO ENTER
+              </h3>
+
+              {/* Description */}
+              <p className="text-xs sm:text-sm text-white/60 leading-relaxed font-semibold uppercase tracking-wider mb-8">
+                Click play now and start wagering on our codes to participate in the monthly leaderboard. Please check the rules below!
+              </p>
+
+              {/* Play Now Button */}
+              <Link 
+                to="/signup" 
+                onClick={() => setShowHowToEnter(false)}
+                className="bg-white hover:bg-white/95 text-black font-bold text-xs tracking-widest py-4 uppercase transition-all duration-300 rounded-2xl shadow-[0_4px_20px_rgba(255,255,255,0.15)] flex items-center justify-center gap-2"
+              >
+                <span>PLAY NOW</span>
+              </Link>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
