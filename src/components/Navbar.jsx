@@ -55,7 +55,7 @@ export default function Navbar() {
   const showExpanded = !collapsed || isHovered;
   
   // Use fixed widths to prevent Framer Motion from jerking on layout calculations
-  const expandedWidth = windowWidth < 480 ? '330px' : '520px';
+  const expandedWidth = windowWidth < 480 ? `${windowWidth - 30}px` : '520px';
 
   // Magnetic calculations
   const handleMouseMove = (e) => {
@@ -183,7 +183,11 @@ export default function Navbar() {
               </Link>
 
               {/* Links */}
-              <div className="flex items-center gap-0.5 relative py-1 shrink-0">
+              <style>{`.hide-scrollbar::-webkit-scrollbar { display: none; }`}</style>
+              <div 
+                className="flex items-center gap-0.5 relative py-1 overflow-x-auto hide-scrollbar w-full justify-start md:justify-end ml-4"
+                style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+              >
                 {navLinks.map((link, idx) => {
                   const isActive = location.pathname === link.path;
                   return (
@@ -192,7 +196,7 @@ export default function Navbar() {
                       to={link.path}
                       onMouseEnter={() => setHoveredIndex(idx)}
                       onMouseLeave={() => setHoveredIndex(null)}
-                      className={`relative px-3.5 py-2 text-[9px] font-bold tracking-widest transition-colors duration-300 ${
+                      className={`shrink-0 relative px-3.5 py-2 text-[9px] font-bold tracking-widest transition-colors duration-300 ${
                         isActive ? 'text-black z-10' : 'text-white/60 hover:text-white z-10'
                       }`}
                     >
@@ -217,7 +221,7 @@ export default function Navbar() {
                 <a
                   href="#vip-ranks"
                   onClick={handleVipClick}
-                  className="px-3.5 py-2 text-[9px] font-bold tracking-widest text-white/60 hover:text-white transition-colors duration-300"
+                  className="shrink-0 px-3.5 py-2 text-[9px] font-bold tracking-widest text-white/60 hover:text-white transition-colors duration-300"
                 >
                   VIP RANKS
                 </a>

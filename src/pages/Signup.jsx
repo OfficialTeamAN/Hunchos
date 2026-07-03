@@ -229,7 +229,7 @@ export default function Signup() {
       type: 'com',
       name: 'Stake.com',
       logo: '/stake_com_clean.png',
-      url: 'https://www.stake.com/?c=Hunchos',
+      url: 'https://www.stake.ac/?c=TnBpCmIN&offer=hunchos',
       badge: 'INTERNATIONAL TIER',
       code: 'Hunchos',
       voucherId: 'VOUCHER: STK-2026-COM',
