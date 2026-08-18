@@ -7,6 +7,7 @@ export default function Navbar() {
   const [collapsed, setCollapsed] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [hoveredIndex, setHoveredIndex] = useState(null);
+  const [vipActive, setVipActive] = useState(false);
   const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1200);
   const location = useLocation();
   const navigate = useNavigate();
@@ -36,26 +37,66 @@ export default function Navbar() {
     setScrollProgress(latest);
   });
 
-  const handleVipClick = (e) => {
-    e.preventDefault();
-    if (location.pathname === '/') {
-      const el = document.getElementById('vip-ranks');
-      if (el) el.scrollIntoView({ behavior: 'smooth' });
-    } else {
-      navigate('/?scroll=vip-ranks');
+  // Check URL scroll param and scroll position
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (params.get('scroll') === 'vip-ranks') {
+      setVipActive(true);
+    } else if (location.pathname !== '/') {
+      setVipActive(false);
     }
-  };
+  }, [location.pathname, location.search]);
+
+  // Scroll spy for VIP section when on Home page
+  useEffect(() => {
+    if (location.pathname !== '/') return;
+
+    const handleScroll = () => {
+      const el = document.getElementById('vip-ranks');
+      if (el) {
+        const rect = el.getBoundingClientRect();
+        // If near or inside VIP section
+        if (rect.top <= 200 && rect.bottom >= 150) {
+          setVipActive(true);
+        } else if (window.scrollY < 350) {
+          setVipActive(false);
+        }
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [location.pathname]);
 
   const navLinks = [
-    { name: 'HOME', path: '/' },
-    { name: 'LEADERBOARD', path: '/leaderboard' },
-    { name: 'CLAIM BONUS', path: '/signup' },
+    { name: 'HOME', path: '/', isVip: false },
+    { name: 'LEADERBOARD', path: '/leaderboard', isVip: false },
+    { name: 'CLAIM BONUS', path: '/signup', isVip: false },
+    { name: 'VIP REWARDS', path: '/#vip-ranks', isVip: true },
   ];
+
+  const handleLinkClick = (e, link) => {
+    if (link.isVip) {
+      e.preventDefault();
+      setVipActive(true);
+      if (location.pathname === '/') {
+        const el = document.getElementById('vip-ranks');
+        if (el) el.scrollIntoView({ behavior: 'smooth' });
+      } else {
+        navigate('/?scroll=vip-ranks');
+      }
+    } else {
+      setVipActive(false);
+      if (link.path === '/' && location.pathname === '/') {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    }
+  };
 
   const showExpanded = !collapsed || isHovered;
   
   // Use fixed widths to prevent Framer Motion from jerking on layout calculations
-  const expandedWidth = windowWidth < 480 ? `${windowWidth - 30}px` : '520px';
+  const expandedWidth = windowWidth < 520 ? `${windowWidth - 24}px` : '580px';
 
   // Magnetic calculations
   const handleMouseMove = (e) => {
@@ -101,8 +142,8 @@ export default function Navbar() {
           width: showExpanded ? expandedWidth : '155px',
           height: '50px',
           borderRadius: '25px',
-          paddingLeft: showExpanded ? '18px' : '10px',
-          paddingRight: showExpanded ? '18px' : '10px',
+          paddingLeft: showExpanded ? '20px' : '10px',
+          paddingRight: showExpanded ? '20px' : '10px',
           x: isNear ? mousePos.x : 0,
           y: isNear ? mousePos.y : 0,
         }}
@@ -169,7 +210,11 @@ export default function Navbar() {
               className="h-full w-full flex items-center justify-between"
             >
               {/* Logo (Avatar + Title) */}
-              <Link to="/" className="flex items-center gap-2 font-black tracking-tighter text-[10px] group/logo shrink-0">
+              <Link 
+                to="/" 
+                onClick={(e) => handleLinkClick(e, navLinks[0])}
+                className="flex items-center gap-2 font-black tracking-tighter text-[10px] group/logo shrink-0"
+              >
                 <div className="w-6 h-6 rounded-full border border-white/10 overflow-hidden relative bg-white/5">
                   <img src="/logo.png" alt="Hunchos Logo" className="w-full h-full object-cover" />
                 </div>
@@ -185,18 +230,24 @@ export default function Navbar() {
               {/* Links */}
               <style>{`.hide-scrollbar::-webkit-scrollbar { display: none; }`}</style>
               <div 
-                className="flex items-center gap-0.5 relative py-1 overflow-x-auto hide-scrollbar w-full justify-start md:justify-end ml-4"
+                className="flex items-center gap-0.5 relative py-1 overflow-x-auto hide-scrollbar w-full justify-start md:justify-end ml-3"
                 style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
               >
                 {navLinks.map((link, idx) => {
-                  const isActive = location.pathname === link.path;
+                  const isActive = link.isVip
+                    ? location.pathname === '/' && vipActive
+                    : link.path === '/'
+                    ? location.pathname === '/' && !vipActive
+                    : location.pathname === link.path;
+
                   return (
                     <Link
                       key={link.name}
                       to={link.path}
+                      onClick={(e) => handleLinkClick(e, link)}
                       onMouseEnter={() => setHoveredIndex(idx)}
                       onMouseLeave={() => setHoveredIndex(null)}
-                      className={`shrink-0 relative px-3.5 py-2 text-[9px] font-bold tracking-widest transition-colors duration-300 ${
+                      className={`shrink-0 relative px-3 py-2 text-[9px] font-bold tracking-widest transition-colors duration-300 ${
                         isActive ? 'text-black z-10' : 'text-white/60 hover:text-white z-10'
                       }`}
                     >
@@ -218,13 +269,6 @@ export default function Navbar() {
                     </Link>
                   );
                 })}
-                <a
-                  href="#vip-ranks"
-                  onClick={handleVipClick}
-                  className="shrink-0 px-3.5 py-2 text-[9px] font-bold tracking-widest text-white/60 hover:text-white transition-colors duration-300"
-                >
-                  VIP RANKS
-                </a>
               </div>
             </motion.div>
           )}

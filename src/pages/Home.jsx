@@ -289,7 +289,7 @@ export default function Home() {
                 }}
                 className="block w-full sm:w-auto border border-white/20 hover:border-white hover:bg-white/5 text-white font-bold text-xs tracking-widest px-8 py-4 uppercase transition-all duration-300 rounded-none text-center"
               >
-                VIP RANKS
+                VIP REWARDS
               </a>
             </motion.div>
           </motion.div>
@@ -338,7 +338,7 @@ export default function Home() {
         <section id="vip-ranks" className="scroll-mt-24">
           <ScrollReveal className="text-center mb-12">
             <h2 className="text-3xl md:text-5xl font-black font-display tracking-tight text-white mb-4 uppercase">
-              VIP RANKS
+              VIP REWARDS
             </h2>
             <p className="text-sm text-white/40 max-w-xl mx-auto uppercase font-bold tracking-widest">
               Earn status and level up your staking experience

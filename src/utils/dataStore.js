@@ -1,28 +1,32 @@
 const DEFAULT_JUNE_DATA = [
-  { rank: 1, username: '***z56', wagered: '$48.3K', prize: '$100', isPodium: true },
-  { rank: 2, username: '*******e07', wagered: '$27.0K', prize: '—', isPodium: true },
-  { rank: 3, username: '**********unc', wagered: '$23.6K', prize: '—', isPodium: true },
-  { rank: 4, username: '*****ate', wagered: '$23.6K', prize: '—', isPodium: false },
-  { rank: 5, username: '***ng1', wagered: '$10.1K', prize: '—', isPodium: false },
-  { rank: 6, username: '******s77', wagered: '$8.8K', prize: '—', isPodium: false },
-  { rank: 7, username: '*******oee', wagered: '$4.2K', prize: '—', isPodium: false },
-  { rank: 8, username: '********ace', wagered: '$4.0K', prize: '—', isPodium: false },
-  { rank: 9, username: '****z31', wagered: '$703.00', prize: '—', isPodium: false },
-  { rank: 10, username: '*****ll9', wagered: '$604.71', prize: '—', isPodium: false },
-  { rank: 11, username: '***ero', wagered: '$586.91', prize: '—', isPodium: false },
-  { rank: 12, username: '****Day', wagered: '$440.26', prize: '—', isPodium: false },
-  { rank: 13, username: '****742', wagered: '$206.16', prize: '—', isPodium: false },
-  { rank: 14, username: '****275', wagered: '$194.45', prize: '—', isPodium: false },
-  { rank: 15, username: '****bon', wagered: '$151.20', prize: '—', isPodium: false },
-  { rank: 16, username: '****GH1', wagered: '$137.20', prize: '—', isPodium: false },
-  { rank: 17, username: '******o32', wagered: '$121.76', prize: '—', isPodium: false },
-  { rank: 18, username: '*********NCH', wagered: '$95.09', prize: '—', isPodium: false },
-  { rank: 19, username: '**********na8', wagered: '$58.41', prize: '—', isPodium: false },
-  { rank: 20, username: '****445', wagered: '$43.61', prize: '—', isPodium: false },
-  { rank: 21, username: '****579', wagered: '$26.41', prize: '—', isPodium: false },
-  { rank: 22, username: '****579', wagered: '$25.73', prize: '—', isPodium: false },
-  { rank: 23, username: '****iOG', wagered: '$10.57', prize: '—', isPodium: false },
-  { rank: 24, username: '****255', wagered: '$1.99', prize: '—', isPodium: false }
+  { rank: 1, username: '**********unc', wagered: '$1.9K', prize: '$100', isPodium: true },
+  { rank: 2, username: '***z56', wagered: '$833.56', prize: '—', isPodium: true },
+  { rank: 3, username: '*******e07', wagered: '$465.57', prize: '—', isPodium: true },
+  { rank: 4, username: '****Doy', wagered: '$408.04', prize: '—', isPodium: false },
+  { rank: 5, username: '*****ate', wagered: '$16.13', prize: '—', isPodium: false },
+  { rank: 6, username: '***ero', wagered: '$10.67', prize: '—', isPodium: false },
+  { rank: 7, username: '*******679', wagered: '$10.26', prize: '—', isPodium: false },
+  { rank: 8, username: '*******oee', wagered: '$6.37', prize: '—', isPodium: false },
+  { rank: 9, username: '********ace', wagered: '$4.20', prize: '—', isPodium: false },
+  { rank: 10, username: '****742', wagered: '$3.77', prize: '—', isPodium: false },
+  { rank: 11, username: '****275', wagered: '$3.56', prize: '—', isPodium: false },
+  { rank: 12, username: '****bon', wagered: '$2.76', prize: '—', isPodium: false },
+  { rank: 13, username: '******o32', wagered: '$2.23', prize: '—', isPodium: false },
+  { rank: 14, username: '*****ll9', wagered: '$1.72', prize: '—', isPodium: false },
+  { rank: 15, username: '**********na8', wagered: '$1.06', prize: '—', isPodium: false },
+  { rank: 16, username: '****445', wagered: '$0.79', prize: '—', isPodium: false },
+  { rank: 17, username: '****579', wagered: '$0.48', prize: '—', isPodium: false },
+  { rank: 18, username: '*****emc', wagered: '$0.35', prize: '—', isPodium: false },
+  { rank: 19, username: '****iOG', wagered: '$0.11', prize: '—', isPodium: false },
+  { rank: 20, username: '******s77', wagered: '$0.00', prize: '—', isPodium: false },
+  { rank: 21, username: '***ng1', wagered: '$0.00', prize: '—', isPodium: false },
+  { rank: 22, username: '****GH1', wagered: '$0.00', prize: '—', isPodium: false },
+  { rank: 23, username: '****255', wagered: '$0.00', prize: '—', isPodium: false },
+  { rank: 24, username: '****SKU', wagered: '$0.00', prize: '—', isPodium: false },
+  { rank: 25, username: '****z31', wagered: '$0.00', prize: '—', isPodium: false },
+  { rank: 26, username: '*********NCH', wagered: '$0.00', prize: '—', isPodium: false },
+  { rank: 27, username: '**********ble', wagered: '$0.00', prize: '—', isPodium: false },
+  { rank: 28, username: '**********fam', wagered: '$0.00', prize: '—', isPodium: false }
 ];
 
 const DEFAULT_MAY_DATA = [
@@ -39,7 +43,7 @@ const DEFAULT_MAY_DATA = [
 ];
 
 // Bump this version whenever DEFAULT data changes to force a cache refresh
-const DATA_VERSION = '2026-08-18';
+const DATA_VERSION = '2026-08-18-v2';
 
 (function checkVersion() {
   if (localStorage.getItem('dataVersion') !== DATA_VERSION) {
