@@ -345,7 +345,7 @@ export default function Leaderboard() {
               
               <div className="flex flex-col gap-4 mt-2">
                 <p className="text-[10px] font-semibold tracking-widest text-white/30 uppercase leading-relaxed max-w-sm">
-                  Daily compilation of referral wagers registered under code Hunchos on Stake.com & Stake.us
+                  Weekly compilation of referral wagers registered under code Hunchos on Stake.com & Stake.us
                 </p>
                 
                 <div className="flex flex-wrap gap-3 mt-1">
@@ -442,26 +442,29 @@ export default function Leaderboard() {
               
               {/* Sliding pill selector */}
               <div className="flex gap-1 bg-[#0a0a0b]/60 p-1 rounded-full border border-white/5 self-start">
-                {['may', 'june'].map((tab) => (
+                {[
+                  { id: 'june', label: 'Aug 16–23', status: 'Live' },
+                  { id: 'may', label: 'Aug 9–16', status: 'Past' }
+                ].map((tab) => (
                   <button
-                    key={tab}
-                    onClick={() => handleTabChange(tab)}
+                    key={tab.id}
+                    onClick={() => handleTabChange(tab.id)}
                     className={`relative px-5 py-2 text-[9px] font-bold tracking-widest uppercase transition-all duration-300 rounded-full cursor-pointer flex items-center gap-2 ${
-                      activeTab === tab ? 'text-black z-10' : 'text-white/45 hover:text-white'
+                      activeTab === tab.id ? 'text-black z-10' : 'text-white/45 hover:text-white'
                     }`}
                   >
-                    {activeTab === tab && (
+                    {activeTab === tab.id && (
                       <motion.div 
                         layoutId="activeTabPill"
                         className="absolute inset-0 bg-white rounded-full -z-10"
                         transition={{ type: 'spring', stiffness: 220, damping: 20 }}
                       />
                     )}
-                    {tab === 'may' ? 'May' : 'June'}
+                    {tab.label}
                     <span className={`text-[7px] px-1.5 py-0.5 rounded-full font-bold ${
-                      activeTab === tab ? 'bg-black/10 text-black' : 'bg-white/5 text-white/30'
+                      activeTab === tab.id ? 'bg-black/10 text-black' : 'bg-white/5 text-white/30'
                     }`}>
-                      {tab === 'may' ? 'Past' : 'Live'}
+                      {tab.status}
                     </span>
                   </button>
                 ))}
@@ -599,7 +602,7 @@ export default function Leaderboard() {
             <ScrollReveal className="flex flex-col gap-4">
               <div className="flex justify-between items-center px-4 py-2 border-b border-white/5 text-[9px] font-bold tracking-widest text-white/35 uppercase">
                 <span>Standings track list</span>
-                <span>{activeTab} pool: {prizePool}</span>
+                <span>{activeTab === 'june' ? 'Aug 16–23' : 'Aug 9–16'} pool: {prizePool}</span>
               </div>
 
               <motion.div 
