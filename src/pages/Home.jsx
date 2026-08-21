@@ -121,7 +121,7 @@ export default function Home() {
   }, [location]);
 
   const stats = [
-    { value: '1000', label: 'MONTHLY POOL', prefix: '$' },
+    { value: '300', label: 'MONTHLY POOL', prefix: '$', suffix: '+' },
     { value: '50', label: 'PLAYERS ON BOARD', suffix: '+' },
     { value: 'DAILY', label: 'DATA UPDATES', isText: true },
   ];
@@ -248,7 +248,7 @@ export default function Home() {
             variants={subtitleVariants}
             className="text-lg md:text-2xl font-bold tracking-widest text-accent mb-2 uppercase font-display"
           >
-            $1,000 MONTHLY LEADERBOARD
+            $100 WEEKLY LEADERBOARD
           </motion.h2>
           
           <motion.p 
