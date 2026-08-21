@@ -435,7 +435,22 @@ export default function Leaderboard() {
           {/* RIGHT COLUMN: Fanned Podium Deck & Track List */}
           <div className="lg:col-span-7 relative">
             
-            <div className="flex flex-col gap-12 transition-all duration-500">
+            {/* Hidden Overlay for Past Leaderboard */}
+            {activeTab === 'may' && (
+              <div className="absolute inset-0 z-50 flex flex-col mt-36 items-center justify-start">
+                <div className="bg-[#0c0c0d]/90 backdrop-blur-xl border border-white/10 rounded-2xl p-8 flex flex-col items-center text-center shadow-[0_20px_60px_rgba(0,0,0,0.8)] max-w-sm mx-auto">
+                  <div className="w-12 h-12 rounded-full border border-white/10 bg-white/5 text-white flex items-center justify-center mb-5">
+                    <Info size={20} />
+                  </div>
+                  <h3 className="text-2xl font-black font-display tracking-tight text-white uppercase mb-3">Leaderboard Hidden</h3>
+                  <p className="text-xs text-white/60 font-semibold uppercase tracking-wider leading-relaxed">
+                    Past leaderboard records are currently hidden. Switch back to the live tab to view active standings.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            <div className={`flex flex-col gap-12 transition-all duration-500 ${activeTab === 'may' ? 'blur-[8px] opacity-30 pointer-events-none select-none' : ''}`}>
             
             {/* Tab Controls & Search Layout */}
             <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-5 border-b border-white/5 pb-6">
