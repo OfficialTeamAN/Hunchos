@@ -154,6 +154,7 @@ export default function Leaderboard() {
   const [visibleCount, setVisibleCount] = useState(10);
   const [copied, setCopied] = useState(false);
   const [showHowToEnter, setShowHowToEnter] = useState(false);
+  const [selectedPodiumRank, setSelectedPodiumRank] = useState(1);
 
   // Responsive device state for podium translations
   const [isMobile, setIsMobile] = useState(false);
@@ -509,7 +510,7 @@ export default function Leaderboard() {
 
             {/* 3D Fanned Podium Ticket Deck */}
             {podium.length > 0 && (
-              <ScrollReveal className="w-full flex justify-center py-6 perspective-[1000px]">
+              <ScrollReveal className="w-full flex flex-col items-center py-6 perspective-[1000px]">
                 <motion.div 
                   initial="idle"
                   whileHover="hovered"
@@ -519,12 +520,22 @@ export default function Leaderboard() {
                   {/* 2nd Place Card (Left) */}
                   {podium[0] && (
                     <motion.div
-                      variants={{
-                        idle: { rotate: -6, x: isMobile ? -35 : -60, y: 15, zIndex: 10 },
-                        hovered: { rotate: 0, x: isMobile ? -75 : -140, y: 0, zIndex: 20 }
-                      }}
-                      transition={{ type: "spring", stiffness: 120, damping: 15 }}
-                      className="absolute w-[150px] h-[210px] bg-[#0a0a0b]/90 border border-white/5 hover:border-zinc-400/20 shadow-2xl rounded-2xl p-5 flex flex-col justify-between overflow-hidden"
+                      onClick={() => setSelectedPodiumRank(2)}
+                      animate={isMobile ? (
+                        selectedPodiumRank === 2 
+                          ? { x: 0, y: -15, rotate: 0, zIndex: 40, scale: 1.05 } 
+                          : selectedPodiumRank === 3 
+                          ? { x: -80, y: 25, rotate: -8, zIndex: 10, scale: 0.86 }
+                          : { x: -45, y: 15, rotate: -5, zIndex: 15, scale: 0.92 }
+                      ) : undefined}
+                      variants={!isMobile ? {
+                        idle: { rotate: -6, x: -60, y: 15, zIndex: 10 },
+                        hovered: { rotate: 0, x: -140, y: 0, zIndex: 20 }
+                      } : undefined}
+                      transition={{ type: "spring", stiffness: 180, damping: 18 }}
+                      className={`absolute w-[150px] h-[210px] bg-[#0a0a0b]/90 border shadow-2xl rounded-2xl p-5 flex flex-col justify-between overflow-hidden cursor-pointer transition-colors duration-300 ${
+                        isMobile && selectedPodiumRank === 2 ? 'border-zinc-400/50 shadow-[0_15px_35px_rgba(255,255,255,0.06)]' : 'border-white/5 hover:border-zinc-400/20'
+                      }`}
                     >
                       <div className="absolute inset-x-0 top-0 h-[2px] bg-zinc-400/10" />
                       
@@ -550,12 +561,22 @@ export default function Leaderboard() {
                   {/* 1st Place Card (Center) */}
                   {podium[1] && (
                     <motion.div
-                      variants={{
+                      onClick={() => setSelectedPodiumRank(1)}
+                      animate={isMobile ? (
+                        selectedPodiumRank === 1 
+                          ? { x: 0, y: -15, rotate: 0, zIndex: 40, scale: 1.05 } 
+                          : selectedPodiumRank === 2 
+                          ? { x: 45, y: 15, rotate: 5, zIndex: 15, scale: 0.92 }
+                          : { x: -45, y: 15, rotate: -5, zIndex: 15, scale: 0.92 }
+                      ) : undefined}
+                      variants={!isMobile ? {
                         idle: { rotate: 0, x: 0, y: 0, zIndex: 30 },
                         hovered: { rotate: 0, x: 0, y: -25, zIndex: 30 }
-                      }}
-                      transition={{ type: "spring", stiffness: 120, damping: 15 }}
-                      className="absolute w-[165px] h-[230px] bg-[#0a0a0b]/90 border border-yellow-500/10 hover:border-yellow-500/25 shadow-2xl rounded-2xl p-6 flex flex-col justify-between overflow-hidden"
+                      } : undefined}
+                      transition={{ type: "spring", stiffness: 180, damping: 18 }}
+                      className={`absolute w-[165px] h-[230px] bg-[#0a0a0b]/90 border shadow-2xl rounded-2xl p-6 flex flex-col justify-between overflow-hidden cursor-pointer transition-colors duration-300 ${
+                        isMobile && selectedPodiumRank === 1 ? 'border-yellow-500/50 shadow-[0_15px_35px_rgba(234,179,8,0.1)]' : 'border-yellow-500/10 hover:border-yellow-500/25'
+                      }`}
                     >
                       <div className="absolute inset-x-0 top-0 h-[2px] bg-yellow-500/15" />
                       
@@ -581,12 +602,22 @@ export default function Leaderboard() {
                   {/* 3rd Place Card (Right) */}
                   {podium[2] && (
                     <motion.div
-                      variants={{
-                        idle: { rotate: 6, x: isMobile ? 35 : 60, y: 15, zIndex: 10 },
-                        hovered: { rotate: 0, x: isMobile ? 75 : 140, y: 0, zIndex: 20 }
-                      }}
-                      transition={{ type: "spring", stiffness: 120, damping: 15 }}
-                      className="absolute w-[150px] h-[210px] bg-[#0a0a0b]/90 border border-white/5 hover:border-orange-500/20 shadow-2xl rounded-2xl p-5 flex flex-col justify-between overflow-hidden"
+                      onClick={() => setSelectedPodiumRank(3)}
+                      animate={isMobile ? (
+                        selectedPodiumRank === 3 
+                          ? { x: 0, y: -15, rotate: 0, zIndex: 40, scale: 1.05 } 
+                          : selectedPodiumRank === 2 
+                          ? { x: 80, y: 25, rotate: 8, zIndex: 10, scale: 0.86 }
+                          : { x: 45, y: 15, rotate: 5, zIndex: 15, scale: 0.92 }
+                      ) : undefined}
+                      variants={!isMobile ? {
+                        idle: { rotate: 6, x: 60, y: 15, zIndex: 10 },
+                        hovered: { rotate: 0, x: 140, y: 0, zIndex: 20 }
+                      } : undefined}
+                      transition={{ type: "spring", stiffness: 180, damping: 18 }}
+                      className={`absolute w-[150px] h-[210px] bg-[#0a0a0b]/90 border shadow-2xl rounded-2xl p-5 flex flex-col justify-between overflow-hidden cursor-pointer transition-colors duration-300 ${
+                        isMobile && selectedPodiumRank === 3 ? 'border-orange-500/50 shadow-[0_15px_35px_rgba(249,115,22,0.1)]' : 'border-white/5 hover:border-orange-500/20'
+                      }`}
                     >
                       <div className="absolute inset-x-0 top-0 h-[2px] bg-orange-500/10" />
                       
@@ -610,6 +641,42 @@ export default function Leaderboard() {
                   )}
 
                 </motion.div>
+
+                {/* Mobile Podium Card Switcher Buttons */}
+                {isMobile && (
+                  <div className="flex justify-center items-center gap-2 mt-2 z-20 relative">
+                    <button
+                      onClick={() => setSelectedPodiumRank(2)}
+                      className={`px-3 py-1 text-[8px] font-bold tracking-widest uppercase rounded-full transition-all duration-300 border cursor-pointer ${
+                        selectedPodiumRank === 2
+                          ? 'bg-zinc-400/20 border-zinc-400 text-white shadow-md scale-105'
+                          : 'bg-white/5 border-white/10 text-white/40 hover:text-white'
+                      }`}
+                    >
+                      2nd Place
+                    </button>
+                    <button
+                      onClick={() => setSelectedPodiumRank(1)}
+                      className={`px-3 py-1 text-[8px] font-bold tracking-widest uppercase rounded-full transition-all duration-300 border cursor-pointer ${
+                        selectedPodiumRank === 1
+                          ? 'bg-yellow-500/20 border-yellow-500 text-yellow-400 shadow-md scale-105'
+                          : 'bg-white/5 border-white/10 text-white/40 hover:text-white'
+                      }`}
+                    >
+                      1st Place
+                    </button>
+                    <button
+                      onClick={() => setSelectedPodiumRank(3)}
+                      className={`px-3 py-1 text-[8px] font-bold tracking-widest uppercase rounded-full transition-all duration-300 border cursor-pointer ${
+                        selectedPodiumRank === 3
+                          ? 'bg-orange-500/20 border-orange-500 text-orange-400 shadow-md scale-105'
+                          : 'bg-white/5 border-white/10 text-white/40 hover:text-white'
+                      }`}
+                    >
+                      3rd Place
+                    </button>
+                  </div>
+                )}
               </ScrollReveal>
             )}
 
