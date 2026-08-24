@@ -110,6 +110,27 @@ export function saveMayData(data) {
   return sorted;
 }
 
+// Raw save: preserve manual ordering without auto-sorting (for drag reorder)
+export function saveJuneDataRaw(data) {
+  const ranked = data.map((player, idx) => ({
+    ...player,
+    rank: idx + 1,
+    isPodium: idx < 3
+  }));
+  localStorage.setItem('juneData', JSON.stringify(ranked));
+  return ranked;
+}
+
+export function saveMayDataRaw(data) {
+  const ranked = data.map((player, idx) => ({
+    ...player,
+    rank: idx + 1,
+    isPodium: idx < 3
+  }));
+  localStorage.setItem('mayData', JSON.stringify(ranked));
+  return ranked;
+}
+
 export function resetData() {
   localStorage.setItem('juneData', JSON.stringify(DEFAULT_JUNE_DATA));
   localStorage.setItem('mayData', JSON.stringify(DEFAULT_MAY_DATA));
@@ -146,7 +167,8 @@ function parseWager(wagerStr) {
 }
 
 // Sort data descending by wager amount and re-calculate rank & isPodium flags
-function sortAndRank(data) {
+// Exported so Admin can call it on demand via "Arrange" button
+export function sortAndRank(data) {
   const cloned = [...data];
   cloned.sort((a, b) => parseWager(b.wagered) - parseWager(a.wagered));
   return cloned.map((player, idx) => ({
@@ -154,4 +176,22 @@ function sortAndRank(data) {
     rank: idx + 1,
     isPodium: idx < 3
   }));
+}
+
+// ---- Leaderboard Timer ----
+// Stores an end-timestamp (ms since epoch) in localStorage.
+// Admin sets days+hours → we compute Date.now() + duration and save.
+// Leaderboard reads the end timestamp and counts down live.
+
+export function getTimerEnd() {
+  const val = localStorage.getItem('leaderboardTimerEnd');
+  return val ? parseInt(val, 10) : null;
+}
+
+export function setTimerEnd(endTimestamp) {
+  localStorage.setItem('leaderboardTimerEnd', endTimestamp.toString());
+}
+
+export function clearTimer() {
+  localStorage.removeItem('leaderboardTimerEnd');
 }

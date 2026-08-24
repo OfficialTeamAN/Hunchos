@@ -1,11 +1,11 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence, useSpring, useMotionValue, useTransform } from 'framer-motion';
-import { Search, X, Flame, Copy, Check, Info } from 'lucide-react';
+import { Search, X, Flame, Copy, Check, Info, Timer } from 'lucide-react';
 import ScrollReveal from '../components/ScrollReveal';
 import CountUp from '../components/CountUp';
 import ConfettiBurst from '../components/ConfettiBurst';
-import { getJuneData, getMayData, getWagerGoal, getPrizePool } from '../utils/dataStore';
+import { getJuneData, getMayData, getWagerGoal, getPrizePool, getTimerEnd } from '../utils/dataStore';
 
 
 /* ============================================================================
@@ -259,6 +259,28 @@ export default function Leaderboard() {
     return getPrizePool(activeTab);
   }, [activeTab]);
 
+  // ---- Countdown Timer ----
+  const [countdown, setCountdown] = useState(null);
+
+  useEffect(() => {
+    const tick = () => {
+      const end = getTimerEnd();
+      if (!end || end <= Date.now()) {
+        setCountdown(null);
+        return;
+      }
+      const diff = end - Date.now();
+      const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const s = Math.floor((diff % (1000 * 60)) / 1000);
+      setCountdown({ d, h, m, s });
+    };
+    tick();
+    const interval = setInterval(tick, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
   const handleTabChange = (tab) => {
     setActiveTab(tab);
     setVisibleCount(10);
@@ -348,6 +370,48 @@ export default function Leaderboard() {
                 <p className="text-[10px] font-semibold tracking-widest text-white/30 uppercase leading-relaxed max-w-sm">
                   Weekly compilation of referral wagers registered under code Hunchos on Stake.com & Stake.us
                 </p>
+
+                {/* Countdown Timer */}
+                {countdown && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="flex items-center gap-3 bg-[#0a0a0b]/80 border border-white/5 rounded-2xl px-4 py-3 self-start"
+                  >
+                    <div className="flex items-center gap-1.5">
+                      <Timer size={12} className="text-accent" />
+                      <span className="text-[7px] font-bold text-white/35 uppercase tracking-widest">Ends in</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <div className="bg-white/5 rounded-lg px-2 py-1 min-w-[32px] text-center">
+                        <span className="text-sm font-mono font-black text-white">{String(countdown.d).padStart(2, '0')}</span>
+                        <span className="text-[5px] font-bold text-white/25 uppercase block -mt-0.5">D</span>
+                      </div>
+                      <span className="text-white/15 font-mono text-xs">:</span>
+                      <div className="bg-white/5 rounded-lg px-2 py-1 min-w-[32px] text-center">
+                        <span className="text-sm font-mono font-black text-white">{String(countdown.h).padStart(2, '0')}</span>
+                        <span className="text-[5px] font-bold text-white/25 uppercase block -mt-0.5">H</span>
+                      </div>
+                      <span className="text-white/15 font-mono text-xs">:</span>
+                      <div className="bg-white/5 rounded-lg px-2 py-1 min-w-[32px] text-center">
+                        <span className="text-sm font-mono font-black text-white">{String(countdown.m).padStart(2, '0')}</span>
+                        <span className="text-[5px] font-bold text-white/25 uppercase block -mt-0.5">M</span>
+                      </div>
+                      <span className="text-white/15 font-mono text-xs">:</span>
+                      <div className="bg-white/5 rounded-lg px-2 py-1 min-w-[32px] text-center">
+                        <motion.span
+                          key={countdown.s}
+                          initial={{ opacity: 0.5, y: -4 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          className="text-sm font-mono font-black text-accent"
+                        >
+                          {String(countdown.s).padStart(2, '0')}
+                        </motion.span>
+                        <span className="text-[5px] font-bold text-white/25 uppercase block -mt-0.5">S</span>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
                 
                 <div className="flex flex-wrap gap-3 mt-1">
                   <button 
