@@ -163,12 +163,8 @@ export default function Admin() {
       const hashArray = Array.from(new Uint8Array(hashBuffer));
       const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 
-      // Allowed access codes for local testing & original SHA-256 target
-      const testCodes = ['admin', 'hunchos', 'hunchos007', '1234', '007'];
-      const isMatch = testCodes.includes(passwordInput.trim()) || 
-                      hashHex === '307f22052a4617bf8473f4d60c7c7452740cf16e5735b2b0b069705d76810965';
-
-      if (isMatch) {
+      // Password SHA-256 target: 307f22052a4617bf8473f4d60c7c7452740cf16e5735b2b0b069705d76810965
+      if (hashHex === '307f22052a4617bf8473f4d60c7c7452740cf16e5735b2b0b069705d76810965') {
         setIsAuthenticated(true);
         sessionStorage.setItem('isAdmin', 'true');
       } else {
