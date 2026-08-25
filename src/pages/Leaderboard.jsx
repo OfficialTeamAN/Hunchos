@@ -5,7 +5,7 @@ import { Search, X, Flame, Copy, Check, Info, Timer } from 'lucide-react';
 import ScrollReveal from '../components/ScrollReveal';
 import CountUp from '../components/CountUp';
 import ConfettiBurst from '../components/ConfettiBurst';
-import { getJuneData, getMayData, getWagerGoal, getPrizePool, getTimerEnd } from '../utils/dataStore';
+import { getJuneData, getMayData, getWagerGoal, getPrizePool, getTimerEnd, getLeaderboardDates } from '../utils/dataStore';
 
 
 /* ============================================================================
@@ -259,27 +259,36 @@ export default function Leaderboard() {
     return getPrizePool(activeTab);
   }, [activeTab]);
 
-  // ---- Countdown Timer ----
+  // ---- Leaderboard Dates & Automatic Countdown Timer ----
+  const [datesConfig, setDatesConfig] = useState(getLeaderboardDates());
   const [countdown, setCountdown] = useState(null);
+
+  useEffect(() => {
+    setDatesConfig(getLeaderboardDates());
+  }, [activeTab]);
 
   useEffect(() => {
     const tick = () => {
       const end = getTimerEnd();
-      if (!end || end <= Date.now()) {
+      if (!end) {
         setCountdown(null);
         return;
       }
       const diff = end - Date.now();
+      if (diff <= 0) {
+        setCountdown({ d: 0, h: 0, m: 0, s: 0, isEnded: true });
+        return;
+      }
       const d = Math.floor(diff / (1000 * 60 * 60 * 24));
       const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
       const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
       const s = Math.floor((diff % (1000 * 60)) / 1000);
-      setCountdown({ d, h, m, s });
+      setCountdown({ d, h, m, s, isEnded: false });
     };
     tick();
     const interval = setInterval(tick, 1000);
     return () => clearInterval(interval);
-  }, []);
+  }, [datesConfig]);
 
   const handleTabChange = (tab) => {
     setActiveTab(tab);
@@ -376,40 +385,48 @@ export default function Leaderboard() {
                   <motion.div
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="flex items-center gap-3 bg-[#0a0a0b]/80 border border-white/5 rounded-2xl px-4 py-3 self-start"
+                    className="flex items-center gap-3 bg-[#0a0a0b]/80 border border-white/5 rounded-2xl px-4 py-3 self-start shadow-md"
                   >
                     <div className="flex items-center gap-1.5">
                       <Timer size={12} className="text-accent" />
-                      <span className="text-[7px] font-bold text-white/35 uppercase tracking-widest">Ends in</span>
+                      <span className="text-[7px] font-bold text-white/35 uppercase tracking-widest">
+                        {countdown.isEnded ? 'Competition' : 'Ends in'}
+                      </span>
                     </div>
-                    <div className="flex items-center gap-1">
-                      <div className="bg-white/5 rounded-lg px-2 py-1 min-w-[32px] text-center">
-                        <span className="text-sm font-mono font-black text-white">{String(countdown.d).padStart(2, '0')}</span>
-                        <span className="text-[5px] font-bold text-white/25 uppercase block -mt-0.5">D</span>
+                    {countdown.isEnded ? (
+                      <span className="text-xs font-mono font-bold text-rose-400 uppercase tracking-wider bg-rose-500/10 px-2 py-0.5 rounded-md border border-rose-500/20">
+                        Ended
+                      </span>
+                    ) : (
+                      <div className="flex items-center gap-1">
+                        <div className="bg-white/5 rounded-lg px-2 py-1 min-w-[32px] text-center">
+                          <span className="text-sm font-mono font-black text-white">{String(countdown.d).padStart(2, '0')}</span>
+                          <span className="text-[5px] font-bold text-white/25 uppercase block -mt-0.5">D</span>
+                        </div>
+                        <span className="text-white/15 font-mono text-xs">:</span>
+                        <div className="bg-white/5 rounded-lg px-2 py-1 min-w-[32px] text-center">
+                          <span className="text-sm font-mono font-black text-white">{String(countdown.h).padStart(2, '0')}</span>
+                          <span className="text-[5px] font-bold text-white/25 uppercase block -mt-0.5">H</span>
+                        </div>
+                        <span className="text-white/15 font-mono text-xs">:</span>
+                        <div className="bg-white/5 rounded-lg px-2 py-1 min-w-[32px] text-center">
+                          <span className="text-sm font-mono font-black text-white">{String(countdown.m).padStart(2, '0')}</span>
+                          <span className="text-[5px] font-bold text-white/25 uppercase block -mt-0.5">M</span>
+                        </div>
+                        <span className="text-white/15 font-mono text-xs">:</span>
+                        <div className="bg-white/5 rounded-lg px-2 py-1 min-w-[32px] text-center">
+                          <motion.span
+                            key={countdown.s}
+                            initial={{ opacity: 0.5, y: -4 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="text-sm font-mono font-black text-accent"
+                          >
+                            {String(countdown.s).padStart(2, '0')}
+                          </motion.span>
+                          <span className="text-[5px] font-bold text-white/25 uppercase block -mt-0.5">S</span>
+                        </div>
                       </div>
-                      <span className="text-white/15 font-mono text-xs">:</span>
-                      <div className="bg-white/5 rounded-lg px-2 py-1 min-w-[32px] text-center">
-                        <span className="text-sm font-mono font-black text-white">{String(countdown.h).padStart(2, '0')}</span>
-                        <span className="text-[5px] font-bold text-white/25 uppercase block -mt-0.5">H</span>
-                      </div>
-                      <span className="text-white/15 font-mono text-xs">:</span>
-                      <div className="bg-white/5 rounded-lg px-2 py-1 min-w-[32px] text-center">
-                        <span className="text-sm font-mono font-black text-white">{String(countdown.m).padStart(2, '0')}</span>
-                        <span className="text-[5px] font-bold text-white/25 uppercase block -mt-0.5">M</span>
-                      </div>
-                      <span className="text-white/15 font-mono text-xs">:</span>
-                      <div className="bg-white/5 rounded-lg px-2 py-1 min-w-[32px] text-center">
-                        <motion.span
-                          key={countdown.s}
-                          initial={{ opacity: 0.5, y: -4 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          className="text-sm font-mono font-black text-accent"
-                        >
-                          {String(countdown.s).padStart(2, '0')}
-                        </motion.span>
-                        <span className="text-[5px] font-bold text-white/25 uppercase block -mt-0.5">S</span>
-                      </div>
-                    </div>
+                    )}
                   </motion.div>
                 )}
                 
@@ -523,8 +540,8 @@ export default function Leaderboard() {
               {/* Sliding pill selector */}
               <div className="flex gap-1 bg-[#0a0a0b]/60 p-1 rounded-full border border-white/5 self-start">
                 {[
-                  { id: 'june', label: 'Aug 16–23', status: 'Live' },
-                  { id: 'may', label: 'Aug 9–16', status: 'Past' }
+                  { id: 'june', label: datesConfig.liveLabel || 'Aug 16–23', status: 'Live' },
+                  { id: 'may', label: datesConfig.pastLabel || 'Aug 9–16', status: 'Past' }
                 ].map((tab) => (
                   <button
                     key={tab.id}
@@ -748,7 +765,7 @@ export default function Leaderboard() {
             <ScrollReveal className="flex flex-col gap-4">
               <div className="flex justify-between items-center px-4 py-2 border-b border-white/5 text-[9px] font-bold tracking-widest text-white/35 uppercase">
                 <span>Standings track list</span>
-                <span>{activeTab === 'june' ? 'Aug 16–23' : 'Aug 9–16'} pool: {prizePool}</span>
+                <span>{activeTab === 'june' ? (datesConfig.liveLabel || 'Aug 16–23') : (datesConfig.pastLabel || 'Aug 9–16')} pool: {prizePool}</span>
               </div>
 
               <motion.div 

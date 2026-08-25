@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { Lock, UserPlus, Trash2, LogOut, Check, Save, RotateCcw, AlertTriangle, FileText, Settings, Database, TrendingUp, Users, ArrowUpDown, GripVertical, ChevronUp, ChevronDown, Timer } from 'lucide-react';
-import { getJuneData, getMayData, saveJuneData, saveMayData, saveJuneDataRaw, saveMayDataRaw, sortAndRank, resetData, getWagerGoal, saveWagerGoal, getPrizePool, savePrizePool, getTimerEnd, setTimerEnd, clearTimer } from '../utils/dataStore';
+import { Lock, UserPlus, Trash2, LogOut, Check, Save, RotateCcw, AlertTriangle, FileText, Settings, Database, TrendingUp, Users, ArrowUpDown, GripVertical, ChevronUp, ChevronDown, Calendar, Clock, Timer, Sparkles } from 'lucide-react';
+import { getJuneData, getMayData, saveJuneData, saveMayData, saveJuneDataRaw, saveMayDataRaw, sortAndRank, resetData, getWagerGoal, saveWagerGoal, getPrizePool, savePrizePool, getLeaderboardDates, saveLeaderboardDates, getTimerEnd } from '../utils/dataStore';
 
 /* ============================================================================
    BACKGROUND AURORA CANVAS COMPONENT
@@ -56,6 +56,118 @@ function AdminAuroraCanvas() {
   return <canvas ref={canvasRef} className="absolute inset-0 w-full h-full pointer-events-none z-0" />;
 }
 
+const MONTH_NAMES = [
+  'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December'
+];
+
+function formatDisplayDateDMY(isoDateStr, timeStr = '') {
+  if (!isoDateStr) return 'Not set';
+  const parts = isoDateStr.split('-');
+  if (parts.length !== 3) return isoDateStr;
+  const year = parts[0];
+  const monthIdx = parseInt(parts[1], 10) - 1;
+  const day = parts[2];
+  const monthName = MONTH_NAMES[monthIdx] || parts[1];
+  const dmy = `${String(day).padStart(2, '0')}/${String(parts[1]).padStart(2, '0')}/${year}`;
+  const readable = `${parseInt(day, 10)} ${monthName} ${year}`;
+  if (timeStr) {
+    return `${readable} at ${timeStr} (${dmy})`;
+  }
+  return `${readable} (${dmy})`;
+}
+
+function DMYDatePicker({ label, isoValue, onChange }) {
+  const parts = (isoValue || '2026-08-16').split('-');
+  const year = parts[0] || '2026';
+  const month = parts[1] || '08';
+  const day = parts[2] || '16';
+
+  const handleDayChange = (newDay) => {
+    const parsed = parseInt(newDay, 10);
+    const validDay = isNaN(parsed) ? '01' : String(Math.min(31, Math.max(1, parsed))).padStart(2, '0');
+    onChange(`${year}-${month}-${validDay}`);
+  };
+
+  const handleMonthChange = (newMonth) => {
+    onChange(`${year}-${newMonth}-${day}`);
+  };
+
+  const handleYearChange = (newYear) => {
+    onChange(`${newYear || '2026'}-${month}-${day}`);
+  };
+
+  return (
+    <div className="flex flex-col gap-2">
+      <div className="flex justify-between items-center">
+        <label className="text-xs font-semibold text-white/60 tracking-wide flex items-center gap-2">
+          <span>{label}</span>
+          <span className="text-white/40 text-[9px] font-mono font-medium bg-white/5 border border-white/10 px-2 py-0.5 rounded-md">
+            Day / Month / Year
+          </span>
+        </label>
+      </div>
+
+      <div className="grid grid-cols-12 gap-2">
+        {/* Date (DD) */}
+        <div className="col-span-3 flex flex-col gap-1">
+          <span className="text-[10px] font-medium text-white/45 tracking-wide">Date (DD)</span>
+          <input
+            type="number"
+            min="1"
+            max="31"
+            value={parseInt(day, 10) || ''}
+            onChange={(e) => handleDayChange(e.target.value)}
+            placeholder="DD"
+            className="bg-white/[0.04] border border-white/8 focus:border-white/20 rounded-xl px-2.5 py-2.5 text-sm font-mono text-white text-center font-bold focus:outline-none transition-colors"
+          />
+        </div>
+
+        {/* Month (MM) */}
+        <div className="col-span-5 flex flex-col gap-1">
+          <span className="text-[10px] font-medium text-white/45 tracking-wide">Month (MM)</span>
+          <select
+            value={month}
+            onChange={(e) => handleMonthChange(e.target.value)}
+            className="bg-white/[0.04] border border-white/8 focus:border-white/20 rounded-xl px-2 py-2.5 text-sm font-medium text-white focus:outline-none transition-colors cursor-pointer"
+          >
+            {MONTH_NAMES.map((name, idx) => {
+              const val = String(idx + 1).padStart(2, '0');
+              return (
+                <option key={val} value={val} className="bg-[#16161d] text-white">
+                  {val} - {name.slice(0, 3)}
+                </option>
+              );
+            })}
+          </select>
+        </div>
+
+        {/* Year (YYYY) */}
+        <div className="col-span-4 flex flex-col gap-1">
+          <span className="text-[10px] font-medium text-white/45 tracking-wide">Year (YYYY)</span>
+          <input
+            type="number"
+            min="2024"
+            max="2035"
+            value={year}
+            onChange={(e) => handleYearChange(e.target.value)}
+            placeholder="YYYY"
+            className="bg-white/[0.04] border border-white/8 focus:border-white/20 rounded-xl px-2.5 py-2.5 text-sm font-mono text-white text-center font-bold focus:outline-none transition-colors"
+          />
+        </div>
+      </div>
+
+      {/* Live Formatted Display */}
+      <div className="flex items-center gap-2 bg-white/[0.03] border border-white/[0.06] rounded-xl px-3.5 py-2.5 mt-0.5">
+        <Calendar size={13} className="text-accent shrink-0" />
+        <span className="text-xs text-white/50">
+          Selected: <strong className="text-white/90 font-semibold">{formatDisplayDateDMY(isoValue)}</strong>
+        </span>
+      </div>
+    </div>
+  );
+}
+
 export default function Admin() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [passwordInput, setPasswordInput] = useState('');
@@ -77,59 +189,62 @@ export default function Admin() {
   // Status Alerts
   const [saveStatus, setSaveStatus] = useState(null); // 'success' | 'reset' | null
 
-  // Timer state
-  const [timerDays, setTimerDays] = useState('7');
-  const [timerHours, setTimerHours] = useState('0');
-  const [activeTimerEnd, setActiveTimerEnd] = useState(null);
+  // Leaderboard Dates & Automatic Timer state
+  const [datesConfig, setDatesConfig] = useState(getLeaderboardDates());
+  const [liveLabelInput, setLiveLabelInput] = useState('');
+  const [liveStartDateInput, setLiveStartDateInput] = useState('');
+  const [liveEndDateInput, setLiveEndDateInput] = useState('');
+  const [liveEndTimeInput, setLiveEndTimeInput] = useState('23:59');
+  const [pastLabelInput, setPastLabelInput] = useState('');
   const [timerRemaining, setTimerRemaining] = useState(null);
 
-  // Load active timer on mount
+  // Load active dates & timer on mount
   useEffect(() => {
-    const end = getTimerEnd();
-    if (end && end > Date.now()) {
-      setActiveTimerEnd(end);
-    }
+    const dates = getLeaderboardDates();
+    setDatesConfig(dates);
+    setLiveLabelInput(dates.liveLabel || 'Aug 16–23');
+    setLiveStartDateInput(dates.liveStartDate || '2026-08-16');
+    setLiveEndDateInput(dates.liveEndDate || '2026-08-23');
+    setLiveEndTimeInput(dates.liveEndTime || '23:59');
+    setPastLabelInput(dates.pastLabel || 'Aug 9–16');
   }, [isAuthenticated]);
 
   // Live countdown tick for admin preview
   useEffect(() => {
-    if (!activeTimerEnd) {
-      setTimerRemaining(null);
-      return;
-    }
     const tick = () => {
-      const diff = activeTimerEnd - Date.now();
-      if (diff <= 0) {
+      const end = getTimerEnd();
+      if (!end) {
         setTimerRemaining(null);
-        setActiveTimerEnd(null);
+        return;
+      }
+      const diff = end - Date.now();
+      if (diff <= 0) {
+        setTimerRemaining({ d: 0, h: 0, m: 0, s: 0, isEnded: true });
         return;
       }
       const d = Math.floor(diff / (1000 * 60 * 60 * 24));
       const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
       const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
       const s = Math.floor((diff % (1000 * 60)) / 1000);
-      setTimerRemaining({ d, h, m, s });
+      setTimerRemaining({ d, h, m, s, isEnded: false });
     };
     tick();
     const interval = setInterval(tick, 1000);
     return () => clearInterval(interval);
-  }, [activeTimerEnd]);
+  }, [datesConfig]);
 
-  const handleStartTimer = () => {
-    const days = parseInt(timerDays, 10) || 0;
-    const hours = parseInt(timerHours, 10) || 0;
-    if (days === 0 && hours === 0) return;
-    const durationMs = (days * 24 * 60 * 60 * 1000) + (hours * 60 * 60 * 1000);
-    const endTime = Date.now() + durationMs;
-    setTimerEnd(endTime);
-    setActiveTimerEnd(endTime);
+  const handleSaveDateSettings = (e) => {
+    if (e) e.preventDefault();
+    const newDates = {
+      liveLabel: liveLabelInput.trim() || 'Aug 16–23',
+      liveStartDate: liveStartDateInput,
+      liveEndDate: liveEndDateInput,
+      liveEndTime: liveEndTimeInput || '23:59',
+      pastLabel: pastLabelInput.trim() || 'Aug 9–16'
+    };
+    const saved = saveLeaderboardDates(newDates);
+    setDatesConfig(saved);
     triggerStatusAlert('success');
-  };
-
-  const handleClearTimer = () => {
-    clearTimer();
-    setActiveTimerEnd(null);
-    setTimerRemaining(null);
   };
 
   // Session check on mount
@@ -223,7 +338,7 @@ export default function Admin() {
     saveCurrentData(players);
     saveWagerGoal(parseInt(wagerGoalInput, 10) || 1000000);
     savePrizePool(activeTab, prizePoolInput);
-    triggerStatusAlert('success');
+    handleSaveDateSettings();
   };
 
   const saveCurrentData = (data) => {
@@ -418,6 +533,13 @@ export default function Admin() {
       setPlayers(resetList);
       setWagerGoalInput(getWagerGoal().toString());
       setPrizePoolInput(getPrizePool(activeTab));
+      const resetDates = getLeaderboardDates();
+      setDatesConfig(resetDates);
+      setLiveLabelInput(resetDates.liveLabel);
+      setLiveStartDateInput(resetDates.liveStartDate);
+      setLiveEndDateInput(resetDates.liveEndDate);
+      setLiveEndTimeInput(resetDates.liveEndTime);
+      setPastLabelInput(resetDates.pastLabel);
       triggerStatusAlert('reset');
     }
   };
@@ -479,25 +601,25 @@ export default function Admin() {
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-[#141419]/95 border border-white/10 p-8 sm:p-10 rounded-3xl shadow-[0_30px_70px_rgba(0,0,0,0.85)] relative backdrop-blur-xl"
+            className="bg-[#16161d]/95 border border-white/10 p-8 sm:p-10 rounded-3xl shadow-[0_30px_70px_rgba(0,0,0,0.85)] relative backdrop-blur-xl"
           >
             <div className="flex flex-col items-center text-center mb-8">
               <div className="w-14 h-14 rounded-2xl bg-accent/15 border border-accent/30 flex items-center justify-center mb-5 shadow-lg shadow-accent/10">
                 <Lock size={22} className="text-accent" />
               </div>
               <h2 className="text-3xl font-black font-display text-white uppercase tracking-tight">ADMIN GATEWAY</h2>
-              <p className="text-xs font-bold text-white/50 tracking-widest uppercase mt-1.5">Hunchos Lead Terminal</p>
+              <p className="text-sm font-medium text-white/40 tracking-wide mt-2">Hunchos Lead Terminal</p>
             </div>
 
             <form onSubmit={handleLogin} className="flex flex-col gap-5">
               <div className="flex flex-col gap-2">
-                <label className="text-[10px] font-bold text-white/70 uppercase tracking-widest">Enter Access Code</label>
+                <label className="text-xs font-semibold text-white/60 tracking-wide">Enter Access Code</label>
                 <input
                   type="password"
                   value={passwordInput}
                   onChange={(e) => setPasswordInput(e.target.value)}
                   placeholder="••••••••••••••"
-                  className="bg-black/50 border border-white/10 rounded-xl px-5 py-3.5 text-sm text-white tracking-widest placeholder-white/30 focus:outline-none focus:border-white/30 focus:ring-1 focus:ring-white/20 transition-all text-center"
+                  className="bg-white/[0.04] border border-white/8 rounded-xl px-5 py-3.5 text-sm text-white tracking-widest placeholder-white/30 focus:outline-none focus:border-white/20 focus:ring-1 focus:ring-white/20 transition-all text-center"
                 />
               </div>
 
@@ -526,7 +648,7 @@ export default function Admin() {
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 border-b border-white/10 pb-8">
             <div>
               <h1 className="text-4xl sm:text-5xl font-black font-display text-white uppercase tracking-tight">ADMIN CONTROL PANEL</h1>
-              <p className="text-xs font-bold text-white/60 tracking-widest uppercase mt-2">Live database manager</p>
+              <p className="text-sm font-medium text-white/40 tracking-wide mt-2">Live database manager</p>
             </div>
             
             <div className="flex gap-3">
@@ -572,72 +694,80 @@ export default function Admin() {
             <div className="lg:col-span-4 flex flex-col gap-8">
               
               {/* Selector tabs */}
-              <div className="flex gap-2 bg-[#141419] p-1.5 rounded-2xl border border-white/10 self-start w-full shadow-inner">
-                {['june', 'may'].map((tab) => (
+              <div className="flex gap-2 bg-[#16161d] p-1.5 rounded-2xl border border-white/10 self-start w-full shadow-inner">
+                {[
+                  { id: 'june', label: datesConfig.liveLabel || 'Aug 16–23', status: 'Live' },
+                  { id: 'may', label: datesConfig.pastLabel || 'Aug 9–16', status: 'Past' }
+                ].map((tab) => (
                   <button
-                    key={tab}
-                    onClick={() => setActiveTab(tab)}
-                    className={`flex-grow py-2.5 text-xs font-bold tracking-widest uppercase transition-all rounded-xl cursor-pointer text-center ${
-                      activeTab === tab ? 'bg-white text-black shadow-md' : 'text-white/60 hover:text-white hover:bg-white/5'
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`flex-grow py-2.5 px-3 text-xs font-bold tracking-wider uppercase transition-all rounded-xl cursor-pointer text-center flex items-center justify-center gap-2 ${
+                      activeTab === tab.id ? 'bg-white text-black shadow-md' : 'text-white/60 hover:text-white hover:bg-white/5'
                     }`}
                   >
-                    {tab === 'june' ? 'June 2026' : 'May 2026'}
+                    <span>{tab.label}</span>
+                    <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded-md ${
+                      activeTab === tab.id ? 'bg-black/10 text-black' : 'bg-white/10 text-white/40'
+                    }`}>
+                      {tab.status}
+                    </span>
                   </button>
                 ))}
               </div>
 
               {/* Metrics cards */}
               <div className="grid grid-cols-2 gap-4">
-                <div className="bg-[#141419] border border-white/10 p-5 rounded-2xl flex items-center gap-3.5 shadow-sm">
+                <div className="bg-[#16161d] border border-white/10 p-5 rounded-2xl flex items-center gap-3.5 shadow-sm">
                   <div className="w-10 h-10 rounded-xl bg-accent/15 border border-accent/25 flex items-center justify-center shrink-0">
                     <TrendingUp size={18} className="text-accent" />
                   </div>
                   <div className="flex flex-col">
-                    <span className="text-[10px] font-bold text-white/50 uppercase tracking-wider">Total Volume</span>
-                    <span className="text-sm sm:text-base font-mono font-bold text-white mt-0.5">{metrics.totalWageredFormatted}</span>
+                    <span className="text-xs font-medium text-white/45 tracking-wide">Total Volume</span>
+                    <span className="text-base sm:text-lg font-mono font-black text-white mt-0.5">{metrics.totalWageredFormatted}</span>
                   </div>
                 </div>
 
-                <div className="bg-[#141419] border border-white/10 p-5 rounded-2xl flex items-center gap-3.5 shadow-sm">
+                <div className="bg-[#16161d] border border-white/10 p-5 rounded-2xl flex items-center gap-3.5 shadow-sm">
                   <div className="w-10 h-10 rounded-xl bg-emerald-500/15 border border-emerald-500/25 flex items-center justify-center shrink-0">
                     <Users size={18} className="text-emerald-400" />
                   </div>
                   <div className="flex flex-col">
-                    <span className="text-[10px] font-bold text-white/50 uppercase tracking-wider">Competitors</span>
-                    <span className="text-sm sm:text-base font-mono font-bold text-white mt-0.5">{metrics.count}</span>
+                    <span className="text-xs font-medium text-white/45 tracking-wide">Competitors</span>
+                    <span className="text-base sm:text-lg font-mono font-black text-white mt-0.5">{metrics.count}</span>
                   </div>
                 </div>
               </div>
 
               {/* Config settings */}
-              <div className="bg-[#141419] border border-white/10 p-6 sm:p-7 rounded-3xl flex flex-col gap-6 shadow-sm">
+              <div className="bg-[#16161d] border border-white/10 p-6 sm:p-7 rounded-3xl flex flex-col gap-6 shadow-sm">
                 <div className="flex items-center gap-2.5 border-b border-white/10 pb-4">
                   <Settings size={16} className="text-white/70" />
-                  <span className="text-sm font-display font-bold tracking-wider text-white uppercase">Target configurations</span>
+                  <span className="text-base font-display font-black tracking-wide text-white">Target configurations</span>
                 </div>
 
                 <div className="flex flex-col gap-4">
                   {/* Wager Goal */}
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-[10px] font-bold text-white/70 uppercase tracking-widest">Wager Goal (USD)</label>
+                    <label className="text-xs font-semibold text-white/60 tracking-wide">Wager Goal (USD)</label>
                     <input
                       type="number"
                       value={wagerGoalInput}
                       onChange={(e) => setWagerGoalInput(e.target.value)}
                       placeholder="1000000"
-                      className="bg-black/40 border border-white/10 focus:border-white/30 rounded-xl px-4 py-3 text-sm font-mono text-white tracking-wider focus:outline-none transition-colors"
+                      className="bg-white/[0.04] border border-white/8 focus:border-white/20 rounded-xl px-4 py-3 text-sm font-mono text-white tracking-wider focus:outline-none transition-colors"
                     />
                   </div>
 
                   {/* Prize Pool */}
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-[10px] font-bold text-white/70 uppercase tracking-widest">Prize Pool Text</label>
+                    <label className="text-xs font-semibold text-white/60 tracking-wide">Prize Pool Text</label>
                     <input
                       type="text"
                       value={prizePoolInput}
                       onChange={(e) => setPrizePoolInput(e.target.value)}
                       placeholder="$1,000"
-                      className="bg-black/40 border border-white/10 focus:border-white/30 rounded-xl px-4 py-3 text-sm text-white tracking-wide focus:outline-none transition-colors"
+                      className="bg-white/[0.04] border border-white/8 focus:border-white/20 rounded-xl px-4 py-3 text-sm text-white tracking-wide focus:outline-none transition-colors"
                     />
                   </div>
 
@@ -651,94 +781,156 @@ export default function Admin() {
                 </div>
               </div>
 
-              {/* Leaderboard Timer */}
-              <div className="bg-[#141419] border border-white/10 p-6 sm:p-7 rounded-3xl flex flex-col gap-6 shadow-sm">
-                <div className="flex items-center gap-2.5 border-b border-white/10 pb-4">
-                  <Timer size={16} className="text-white/70" />
-                  <span className="text-sm font-display font-bold tracking-wider text-white uppercase">Leaderboard Timer</span>
+              {/* Leaderboard Schedule & Dates */}
+              <div className="bg-[#16161d] border border-white/10 p-6 sm:p-7 rounded-3xl flex flex-col gap-6 shadow-sm">
+                <div className="flex items-center justify-between border-b border-white/10 pb-4">
+                  <div className="flex items-center gap-2.5">
+                    <Calendar size={16} className="text-white/70" />
+                    <span className="text-base font-display font-black tracking-wide text-white">Leaderboard Schedule</span>
+                  </div>
+                  <span className="text-[10px] font-medium px-3 py-1 rounded-lg tracking-wide bg-white/5 border border-white/10 text-white/50 font-mono">
+                    DD / MM / YYYY
+                  </span>
                 </div>
 
-                {/* Live countdown preview */}
-                {timerRemaining ? (
-                  <div className="bg-emerald-500/10 border border-emerald-500/25 rounded-2xl p-4 sm:p-5 flex flex-col items-center gap-3">
-                    <span className="text-[9px] font-bold text-emerald-400 uppercase tracking-widest">Timer Active — Ends in</span>
-                    <div className="flex items-center gap-2">
-                      <div className="flex flex-col items-center bg-black/50 border border-white/5 rounded-xl px-3 py-2 min-w-[46px]">
-                        <span className="text-xl font-mono font-black text-white">{String(timerRemaining.d).padStart(2, '0')}</span>
-                        <span className="text-[8px] font-bold text-white/50 uppercase tracking-wider mt-0.5">Days</span>
-                      </div>
-                      <span className="text-white/40 font-mono font-bold text-base">:</span>
-                      <div className="flex flex-col items-center bg-black/50 border border-white/5 rounded-xl px-3 py-2 min-w-[46px]">
-                        <span className="text-xl font-mono font-black text-white">{String(timerRemaining.h).padStart(2, '0')}</span>
-                        <span className="text-[8px] font-bold text-white/50 uppercase tracking-wider mt-0.5">Hrs</span>
-                      </div>
-                      <span className="text-white/40 font-mono font-bold text-base">:</span>
-                      <div className="flex flex-col items-center bg-black/50 border border-white/5 rounded-xl px-3 py-2 min-w-[46px]">
-                        <span className="text-xl font-mono font-black text-white">{String(timerRemaining.m).padStart(2, '0')}</span>
-                        <span className="text-[8px] font-bold text-white/50 uppercase tracking-wider mt-0.5">Min</span>
-                      </div>
-                      <span className="text-white/40 font-mono font-bold text-base">:</span>
-                      <div className="flex flex-col items-center bg-black/50 border border-white/5 rounded-xl px-3 py-2 min-w-[46px]">
-                        <span className="text-xl font-mono font-black text-white">{String(timerRemaining.s).padStart(2, '0')}</span>
-                        <span className="text-[8px] font-bold text-white/50 uppercase tracking-wider mt-0.5">Sec</span>
-                      </div>
-                    </div>
-                    <button
-                      onClick={handleClearTimer}
-                      className="mt-2 text-[10px] font-bold text-rose-400 hover:text-rose-300 uppercase tracking-widest cursor-pointer transition-colors px-3 py-1 rounded-lg hover:bg-rose-500/10"
-                    >
-                      Clear Timer
-                    </button>
+                {/* Automatic Countdown Readout Preview */}
+                <div className="bg-[#0c0c0f] border border-white/5 rounded-2xl p-4 sm:p-5 flex flex-col items-center gap-3">
+                  <div className="flex justify-between items-center w-full">
+                    <span className="text-[11px] font-semibold text-white/50 tracking-wide flex items-center gap-1.5">
+                      <Timer size={12} className={timerRemaining && !timerRemaining.isEnded ? 'text-emerald-400' : 'text-rose-400'} />
+                      <span>{timerRemaining && !timerRemaining.isEnded ? 'Active Countdown' : 'Timer Status'}</span>
+                    </span>
+                    <span className={`text-[10px] font-semibold px-2.5 py-1 rounded-lg tracking-wide ${
+                      timerRemaining && !timerRemaining.isEnded
+                        ? 'bg-emerald-500/15 border border-emerald-500/30 text-emerald-400'
+                        : 'bg-rose-500/15 border border-rose-500/30 text-rose-400'
+                    }`}>
+                      {timerRemaining && !timerRemaining.isEnded ? 'Counting Down' : 'Competition Ended'}
+                    </span>
                   </div>
-                ) : (
-                  <div className="bg-black/30 border border-white/5 rounded-2xl p-4 text-center">
-                    <span className="text-[10px] font-bold text-white/40 uppercase tracking-widest">No active timer</span>
-                  </div>
-                )}
 
-                <div className="flex flex-col gap-4">
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="flex flex-col gap-1.5">
-                      <label className="text-[10px] font-bold text-white/70 uppercase tracking-widest">Days</label>
+                  {timerRemaining && !timerRemaining.isEnded ? (
+                    <div className="flex items-center gap-2 my-1">
+                      <div className="flex flex-col items-center bg-black/60 border border-white/10 rounded-xl px-3 py-2 min-w-[46px]">
+                        <span className="text-xl font-mono font-black text-white">{String(timerRemaining.d).padStart(2, '0')}</span>
+                        <span className="text-[9px] font-medium text-white/40 tracking-wide mt-0.5">Days</span>
+                      </div>
+                      <span className="text-white/40 font-mono font-bold text-base">:</span>
+                      <div className="flex flex-col items-center bg-black/60 border border-white/10 rounded-xl px-3 py-2 min-w-[46px]">
+                        <span className="text-xl font-mono font-black text-white">{String(timerRemaining.h).padStart(2, '0')}</span>
+                        <span className="text-[9px] font-medium text-white/40 tracking-wide mt-0.5">Hrs</span>
+                      </div>
+                      <span className="text-white/40 font-mono font-bold text-base">:</span>
+                      <div className="flex flex-col items-center bg-black/60 border border-white/10 rounded-xl px-3 py-2 min-w-[46px]">
+                        <span className="text-xl font-mono font-black text-white">{String(timerRemaining.m).padStart(2, '0')}</span>
+                        <span className="text-[9px] font-medium text-white/40 tracking-wide mt-0.5">Min</span>
+                      </div>
+                      <span className="text-white/40 font-mono font-bold text-base">:</span>
+                      <div className="flex flex-col items-center bg-black/60 border border-white/10 rounded-xl px-3 py-2 min-w-[46px]">
+                        <span className="text-xl font-mono font-black text-accent">{String(timerRemaining.s).padStart(2, '0')}</span>
+                        <span className="text-[9px] font-medium text-white/40 tracking-wide mt-0.5">Sec</span>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-center py-2">
+                      <span className="text-xs font-mono font-bold text-white/60 uppercase">Timer reaches zero on target deadline</span>
+                    </div>
+                  )}
+
+                  <div className="flex flex-col items-center text-center mt-1 border-t border-white/5 pt-2 w-full">
+                    <span className="text-[10px] font-medium text-white/35 tracking-wide">Target Deadline:</span>
+                    <span className="text-xs font-mono font-semibold text-accent/90 mt-1">
+                      {formatDisplayDateDMY(liveEndDateInput, liveEndTimeInput)}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-5">
+                  {/* Start Date (DD / MM / YYYY) */}
+                  <DMYDatePicker
+                    label="Live Week Start Date"
+                    isoValue={liveStartDateInput}
+                    onChange={setLiveStartDateInput}
+                  />
+
+                  {/* End Date (DD / MM / YYYY) */}
+                  <DMYDatePicker
+                    label="Live Week End Date (Deadline)"
+                    isoValue={liveEndDateInput}
+                    onChange={setLiveEndDateInput}
+                  />
+
+                  {/* End Time (HH:MM) */}
+                  <div className="flex flex-col gap-2">
+                    <label className="text-xs font-semibold text-white/60 tracking-wide flex items-center justify-between">
+                      <span>End Time (Hour : Minute)</span>
+                      <span className="text-white/35 font-mono text-[10px]">24-Hour Format</span>
+                    </label>
+                    <div className="flex items-center gap-2">
                       <input
-                        type="number"
-                        min="0"
-                        max="30"
-                        value={timerDays}
-                        onChange={(e) => setTimerDays(e.target.value)}
-                        placeholder="7"
-                        className="bg-black/40 border border-white/10 focus:border-white/30 rounded-xl px-4 py-3 text-sm font-mono text-white tracking-wider focus:outline-none text-center transition-colors"
+                        type="time"
+                        value={liveEndTimeInput}
+                        onChange={(e) => setLiveEndTimeInput(e.target.value)}
+                        className="bg-white/[0.04] border border-white/8 focus:border-white/20 rounded-xl px-4 py-2.5 text-sm font-mono text-white tracking-wider focus:outline-none transition-colors w-full"
                       />
                     </div>
-                    <div className="flex flex-col gap-1.5">
-                      <label className="text-[10px] font-bold text-white/70 uppercase tracking-widest">Hours</label>
-                      <input
-                        type="number"
-                        min="0"
-                        max="23"
-                        value={timerHours}
-                        onChange={(e) => setTimerHours(e.target.value)}
-                        placeholder="0"
-                        className="bg-black/40 border border-white/10 focus:border-white/30 rounded-xl px-4 py-3 text-sm font-mono text-white tracking-wider focus:outline-none text-center transition-colors"
-                      />
+                    <div className="flex items-center gap-2 bg-white/[0.03] border border-white/[0.06] rounded-xl px-3.5 py-2.5">
+                      <Clock size={13} className="text-accent shrink-0" />
+                      <span className="text-xs text-white/50">
+                        Deadline Time: <strong className="text-white/90 font-semibold">{liveEndTimeInput || '23:59'} (Target End)</strong>
+                      </span>
                     </div>
+                  </div>
+
+                  {/* Live Week Label */}
+                  <div className="flex flex-col gap-2 border-t border-white/10 pt-4">
+                    <div className="flex justify-between items-center">
+                      <label className="text-xs font-semibold text-white/60 tracking-wide">
+                        Live Week Display Label
+                      </label>
+                      <span className="text-[10px] font-mono text-white/30">Visible on Tabs</span>
+                    </div>
+                    <input
+                      type="text"
+                      value={liveLabelInput}
+                      onChange={(e) => setLiveLabelInput(e.target.value)}
+                      placeholder="e.g. Aug 16–23 or 16–23 Aug"
+                      className="bg-white/[0.04] border border-white/8 focus:border-white/20 rounded-xl px-4 py-3 text-sm font-medium text-white tracking-wide focus:outline-none transition-colors"
+                    />
+                  </div>
+
+                  {/* Past Week Label */}
+                  <div className="flex flex-col gap-2">
+                    <div className="flex justify-between items-center">
+                      <label className="text-xs font-semibold text-white/60 tracking-wide">
+                        Past Week Display Label
+                      </label>
+                      <span className="text-[10px] font-mono text-white/30">Visible on Tabs</span>
+                    </div>
+                    <input
+                      type="text"
+                      value={pastLabelInput}
+                      onChange={(e) => setPastLabelInput(e.target.value)}
+                      placeholder="e.g. Aug 9–16 or 09–16 Aug"
+                      className="bg-white/[0.04] border border-white/8 focus:border-white/20 rounded-xl px-4 py-3 text-sm font-medium text-white tracking-wide focus:outline-none transition-colors"
+                    />
                   </div>
 
                   <button
-                    onClick={handleStartTimer}
-                    className="w-full bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 hover:border-emerald-500/50 text-emerald-400 font-bold text-xs tracking-widest py-3.5 uppercase rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer shadow-sm active:scale-[0.99]"
+                    onClick={handleSaveDateSettings}
+                    className="w-full bg-white hover:bg-zinc-200 text-black font-extrabold text-xs tracking-widest py-3.5 uppercase rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer shadow-lg active:scale-[0.99] mt-2"
                   >
-                    <Timer size={14} />
-                    <span>Start Timer</span>
+                    <Save size={14} />
+                    <span>Apply Schedule & Dates</span>
                   </button>
                 </div>
               </div>
 
               {/* Maintenance Tools */}
-              <div className="bg-[#141419] border border-white/10 p-6 sm:p-7 rounded-3xl flex flex-col gap-5 shadow-sm">
+              <div className="bg-[#16161d] border border-white/10 p-6 sm:p-7 rounded-3xl flex flex-col gap-5 shadow-sm">
                 <div className="flex items-center gap-2.5 border-b border-white/10 pb-4">
                   <Database size={16} className="text-white/70" />
-                  <span className="text-sm font-display font-bold tracking-wider text-white uppercase">Database tools</span>
+                  <span className="text-base font-display font-black tracking-wide text-white">Database tools</span>
                 </div>
 
                 <button
@@ -756,45 +948,45 @@ export default function Admin() {
             <div className="lg:col-span-8 flex flex-col gap-8">
               
               {/* Add Competitor Form */}
-              <div className="bg-[#141419] border border-white/10 p-6 sm:p-7 rounded-3xl flex flex-col gap-6 shadow-sm">
+              <div className="bg-[#16161d] border border-white/10 p-6 sm:p-7 rounded-3xl flex flex-col gap-6 shadow-sm">
                 <div className="flex items-center gap-2.5 border-b border-white/10 pb-4">
                   <UserPlus size={16} className="text-white/70" />
-                  <span className="text-sm font-display font-bold tracking-wider text-white uppercase">Add New Competitor</span>
+                  <span className="text-base font-display font-black tracking-wide text-white">Add New Competitor</span>
                 </div>
 
                 <form onSubmit={handleAddPlayer} className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-[10px] font-bold text-white/70 uppercase tracking-widest">Username</label>
+                    <label className="text-xs font-semibold text-white/60 tracking-wide">Username</label>
                     <input
                       type="text"
                       required
                       value={newUsername}
                       onChange={(e) => setNewUsername(e.target.value)}
                       placeholder="e.g. StakeWinner"
-                      className="bg-black/40 border border-white/10 focus:border-white/30 rounded-xl px-4 py-3 text-sm text-white focus:outline-none transition-colors"
+                      className="bg-white/[0.04] border border-white/8 focus:border-white/20 rounded-xl px-4 py-3 text-sm text-white focus:outline-none transition-colors"
                     />
                   </div>
 
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-[10px] font-bold text-white/70 uppercase tracking-widest">Wager Amount</label>
+                    <label className="text-xs font-semibold text-white/60 tracking-wide">Wager Amount</label>
                     <input
                       type="text"
                       required
                       value={newWager}
                       onChange={(e) => setNewWager(e.target.value)}
                       placeholder="e.g. $12.3K or $403.00"
-                      className="bg-black/40 border border-white/10 focus:border-white/30 rounded-xl px-4 py-3 text-sm font-mono text-white focus:outline-none transition-colors"
+                      className="bg-white/[0.04] border border-white/8 focus:border-white/20 rounded-xl px-4 py-3 text-sm font-mono text-white focus:outline-none transition-colors"
                     />
                   </div>
 
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-[10px] font-bold text-white/70 uppercase tracking-widest">Prize Amount</label>
+                    <label className="text-xs font-semibold text-white/60 tracking-wide">Prize Amount</label>
                     <input
                       type="text"
                       value={newPrize}
                       onChange={(e) => setNewPrize(e.target.value)}
                       placeholder="e.g. $100 or leave empty"
-                      className="bg-black/40 border border-white/10 focus:border-white/30 rounded-xl px-4 py-3 text-sm font-mono text-white focus:outline-none transition-colors"
+                      className="bg-white/[0.04] border border-white/8 focus:border-white/20 rounded-xl px-4 py-3 text-sm font-mono text-white focus:outline-none transition-colors"
                     />
                   </div>
 
@@ -809,9 +1001,9 @@ export default function Admin() {
               </div>
 
               {/* Competitors List Manager */}
-              <div className="bg-[#141419] border border-white/10 rounded-3xl p-5 sm:p-7 flex flex-col gap-6 shadow-sm">
+              <div className="bg-[#16161d] border border-white/10 rounded-3xl p-5 sm:p-7 flex flex-col gap-6 shadow-sm">
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-white/10 pb-5">
-                  <span className="text-sm font-display font-bold tracking-wider text-white uppercase">Competitor database ({players.length})</span>
+                  <span className="text-base font-display font-black tracking-wide text-white">Competitor database ({players.length})</span>
                   <div className="flex items-center gap-2.5">
                     <button
                       onClick={handleArrange}
@@ -821,14 +1013,14 @@ export default function Admin() {
                       <ArrowUpDown size={13} />
                       <span>Arrange by Wager</span>
                     </button>
-                    <span className="text-[9px] font-mono font-bold text-white/40 tracking-wider hidden sm:inline">DRAG TO REORDER</span>
+                    <span className="text-[11px] font-mono font-medium text-white/30 tracking-wide hidden sm:inline">DRAG TO REORDER</span>
                   </div>
                 </div>
 
                 <div ref={tableContainerRef} className="overflow-x-auto max-h-[560px] overflow-y-auto pr-1 -mx-1 px-1">
                   <table className="w-full text-left text-sm">
-                    <thead className="sticky top-0 bg-[#141419] z-10">
-                      <tr className="border-b border-white/10 text-[10px] font-bold text-white/60 uppercase tracking-wider">
+                    <thead className="sticky top-0 bg-[#16161d] z-10">
+                      <tr className="border-b border-white/10 text-xs font-semibold text-white/50 tracking-wide">
                         <th className="py-3 pl-2 w-10 text-center"></th>
                         <th className="py-3 w-12">Rank</th>
                         <th className="py-3">Competitor</th>
@@ -944,7 +1136,7 @@ export default function Admin() {
                 </div>
 
                 <div className="border-t border-white/10 pt-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                  <span className="text-[9px] font-mono text-white/40 uppercase">Drag rows or use ↑↓ to reorder • Click cells to edit • Arrange to auto-sort</span>
+                  <span className="text-[11px] font-mono text-white/30 tracking-wide">Drag rows or use ↑↓ to reorder • Click cells to edit • Arrange to auto-sort</span>
                   
                   <div className="flex items-center gap-3">
                     <button

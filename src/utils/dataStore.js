@@ -59,7 +59,7 @@ const DEFAULT_MAY_DATA = [
 ];
 
 // Bump this version whenever DEFAULT data changes to force a cache refresh
-const DATA_VERSION = '2026-08-21-v1';
+const DATA_VERSION = '2026-08-25-v2';
 
 (function checkVersion() {
   if (localStorage.getItem('dataVersion') !== DATA_VERSION) {
@@ -137,6 +137,8 @@ export function resetData() {
   localStorage.removeItem('wagerGoal');
   localStorage.removeItem('junePrizePool');
   localStorage.removeItem('mayPrizePool');
+  localStorage.removeItem('leaderboardDates');
+  localStorage.removeItem('leaderboardTimerEnd');
 }
 
 export function getWagerGoal() {
@@ -178,14 +180,57 @@ export function sortAndRank(data) {
   }));
 }
 
-// ---- Leaderboard Timer ----
-// Stores an end-timestamp (ms since epoch) in localStorage.
-// Admin sets days+hours → we compute Date.now() + duration and save.
-// Leaderboard reads the end timestamp and counts down live.
+// ---- Leaderboard Dates & Automatic Countdown Timer ----
+const DEFAULT_LEADERBOARD_DATES = {
+  liveLabel: 'Aug 16–23',
+  liveStartDate: '2026-08-16',
+  liveEndDate: '2026-08-23',
+  liveEndTime: '23:59',
+  pastLabel: 'Aug 9–16'
+};
+
+export function getLeaderboardDates() {
+  const local = localStorage.getItem('leaderboardDates');
+  if (local) {
+    try {
+      return { ...DEFAULT_LEADERBOARD_DATES, ...JSON.parse(local) };
+    } catch (e) {
+      console.error('Error parsing leaderboardDates', e);
+    }
+  }
+  return DEFAULT_LEADERBOARD_DATES;
+}
+
+export function saveLeaderboardDates(dates) {
+  const merged = { ...DEFAULT_LEADERBOARD_DATES, ...dates };
+  localStorage.setItem('leaderboardDates', JSON.stringify(merged));
+
+  // Automatically compute and sync countdown timer end timestamp from liveEndDate & liveEndTime
+  if (merged.liveEndDate) {
+    const timePart = merged.liveEndTime ? (merged.liveEndTime.length === 5 ? `${merged.liveEndTime}:00` : merged.liveEndTime) : '23:59:59';
+    const endDateTime = new Date(`${merged.liveEndDate}T${timePart}`);
+    if (!isNaN(endDateTime.getTime())) {
+      setTimerEnd(endDateTime.getTime());
+    }
+  }
+  return merged;
+}
 
 export function getTimerEnd() {
   const val = localStorage.getItem('leaderboardTimerEnd');
-  return val ? parseInt(val, 10) : null;
+  if (val) {
+    return parseInt(val, 10);
+  }
+  // Compute from current leaderboard dates
+  const dates = getLeaderboardDates();
+  if (dates.liveEndDate) {
+    const timePart = dates.liveEndTime ? (dates.liveEndTime.length === 5 ? `${dates.liveEndTime}:00` : dates.liveEndTime) : '23:59:59';
+    const endDateTime = new Date(`${dates.liveEndDate}T${timePart}`);
+    if (!isNaN(endDateTime.getTime())) {
+      return endDateTime.getTime();
+    }
+  }
+  return null;
 }
 
 export function setTimerEnd(endTimestamp) {
