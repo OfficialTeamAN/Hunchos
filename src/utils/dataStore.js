@@ -58,6 +58,8 @@ const DEFAULT_MAY_DATA = [
   { rank: 25, username: '****579', wagered: '$0.00', prize: '—', isPodium: false }
 ];
 
+import { fetchLeaderboardFromGitHub } from './githubSync.js';
+
 // Bump this version whenever DEFAULT data changes to force a cache refresh
 const DATA_VERSION = '2026-08-25-v2';
 
@@ -70,6 +72,55 @@ const DATA_VERSION = '2026-08-25-v2';
     localStorage.setItem('dataVersion', DATA_VERSION);
   }
 })();
+
+// ---- GitHub Live Data Sync ----
+// Fetches the latest data from the GitHub repo and populates localStorage
+// so all existing getters work seamlessly.
+let _initialized = false;
+
+export async function initializeFromGitHub() {
+  if (_initialized) return;
+  _initialized = true;
+
+  try {
+    const data = await fetchLeaderboardFromGitHub();
+    if (!data) return;
+
+    // Populate localStorage with GitHub data (overrides hardcoded defaults)
+    if (data.juneData) localStorage.setItem('juneData', JSON.stringify(data.juneData));
+    if (data.mayData) localStorage.setItem('mayData', JSON.stringify(data.mayData));
+    if (data.wagerGoal) localStorage.setItem('wagerGoal', data.wagerGoal.toString());
+    if (data.junePrizePool) localStorage.setItem('junePrizePool', data.junePrizePool);
+    if (data.mayPrizePool) localStorage.setItem('mayPrizePool', data.mayPrizePool);
+    if (data.leaderboardDates) {
+      localStorage.setItem('leaderboardDates', JSON.stringify(data.leaderboardDates));
+      // Compute timer end from dates
+      const dates = data.leaderboardDates;
+      if (dates.liveEndDate) {
+        const timePart = dates.liveEndTime ? (dates.liveEndTime.length === 5 ? `${dates.liveEndTime}:00` : dates.liveEndTime) : '23:59:59';
+        const endDateTime = new Date(`${dates.liveEndDate}T${timePart}`);
+        if (!isNaN(endDateTime.getTime())) {
+          localStorage.setItem('leaderboardTimerEnd', endDateTime.getTime().toString());
+        }
+      }
+    }
+    console.log('[DataStore] Loaded live data from GitHub');
+  } catch (err) {
+    console.warn('[DataStore] GitHub fetch failed, using local data:', err.message);
+  }
+}
+
+// Build a full data snapshot for pushing to GitHub
+export function buildFullSnapshot() {
+  return {
+    juneData: getJuneData(),
+    mayData: getMayData(),
+    wagerGoal: getWagerGoal(),
+    junePrizePool: getPrizePool('june'),
+    mayPrizePool: getPrizePool('may'),
+    leaderboardDates: getLeaderboardDates()
+  };
+}
 
 export function getJuneData() {
   const local = localStorage.getItem('juneData');

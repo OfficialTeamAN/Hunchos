@@ -5,7 +5,7 @@ import { Search, X, Flame, Copy, Check, Info, Timer } from 'lucide-react';
 import ScrollReveal from '../components/ScrollReveal';
 import CountUp from '../components/CountUp';
 import ConfettiBurst from '../components/ConfettiBurst';
-import { getJuneData, getMayData, getWagerGoal, getPrizePool, getTimerEnd, getLeaderboardDates } from '../utils/dataStore';
+import { getJuneData, getMayData, getWagerGoal, getPrizePool, getTimerEnd, getLeaderboardDates, initializeFromGitHub } from '../utils/dataStore';
 
 
 /* ============================================================================
@@ -183,9 +183,19 @@ export default function Leaderboard() {
     return () => clearInterval(interval);
   }, []);
 
+  // Live sync with GitHub repo
+  const [dataVersion, setDataVersion] = useState(0);
+
+  useEffect(() => {
+    initializeFromGitHub().then(() => {
+      setDataVersion(v => v + 1);
+      setDatesConfig(getLeaderboardDates());
+    });
+  }, []);
+
   const rawData = useMemo(() => {
     return activeTab === 'june' ? getJuneData() : getMayData();
-  }, [activeTab]);
+  }, [activeTab, dataVersion]);
 
   const filteredData = useMemo(() => {
     if (!searchQuery) return rawData;
@@ -229,7 +239,7 @@ export default function Leaderboard() {
 
   const wagerGoal = useMemo(() => {
     return getWagerGoal();
-  }, [activeTab, rawData]);
+  }, [activeTab, rawData, dataVersion]);
 
   const progressPercent = useMemo(() => {
     return Math.min((totalWageredVal / wagerGoal) * 100, 100);
@@ -257,7 +267,7 @@ export default function Leaderboard() {
 
   const prizePool = useMemo(() => {
     return getPrizePool(activeTab);
-  }, [activeTab]);
+  }, [activeTab, dataVersion]);
 
   // ---- Leaderboard Dates & Automatic Countdown Timer ----
   const [datesConfig, setDatesConfig] = useState(getLeaderboardDates());
@@ -265,7 +275,7 @@ export default function Leaderboard() {
 
   useEffect(() => {
     setDatesConfig(getLeaderboardDates());
-  }, [activeTab]);
+  }, [activeTab, dataVersion]);
 
   useEffect(() => {
     const tick = () => {

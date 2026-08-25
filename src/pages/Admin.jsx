@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { Lock, UserPlus, Trash2, LogOut, Check, Save, RotateCcw, AlertTriangle, FileText, Settings, Database, TrendingUp, Users, ArrowUpDown, GripVertical, ChevronUp, ChevronDown, Calendar, Clock, Timer, Sparkles } from 'lucide-react';
-import { getJuneData, getMayData, saveJuneData, saveMayData, saveJuneDataRaw, saveMayDataRaw, sortAndRank, resetData, getWagerGoal, saveWagerGoal, getPrizePool, savePrizePool, getLeaderboardDates, saveLeaderboardDates, getTimerEnd } from '../utils/dataStore';
+import { Lock, UserPlus, Trash2, LogOut, Check, Save, RotateCcw, AlertTriangle, FileText, Settings, Database, TrendingUp, Users, ArrowUpDown, GripVertical, ChevronUp, ChevronDown, Calendar, Clock, Timer, Sparkles, GitBranch, UploadCloud, RefreshCw } from 'lucide-react';
+import { getJuneData, getMayData, saveJuneData, saveMayData, saveJuneDataRaw, saveMayDataRaw, sortAndRank, resetData, getWagerGoal, saveWagerGoal, getPrizePool, savePrizePool, getLeaderboardDates, saveLeaderboardDates, getTimerEnd, buildFullSnapshot, initializeFromGitHub } from '../utils/dataStore';
+import { pushLeaderboardToGitHub, getGitHubToken, setGitHubToken } from '../utils/githubSync';
 
 /* ============================================================================
    BACKGROUND AURORA CANVAS COMPONENT
@@ -198,16 +199,56 @@ export default function Admin() {
   const [pastLabelInput, setPastLabelInput] = useState('');
   const [timerRemaining, setTimerRemaining] = useState(null);
 
-  // Load active dates & timer on mount
+  // GitHub Auto-Sync State
+  const [isSyncingGitHub, setIsSyncingGitHub] = useState(false);
+  const [gitHubSyncStatus, setGitHubSyncStatus] = useState('idle'); // 'idle' | 'syncing' | 'synced' | 'error'
+  const [gitHubSyncMsg, setGitHubSyncMsg] = useState(null);
+  const [githubTokenInput, setGithubTokenInput] = useState(getGitHubToken());
+
+  const handleSaveGitHubToken = (e) => {
+    if (e) e.preventDefault();
+    setGitHubToken(githubTokenInput.trim());
+    triggerStatusAlert('success');
+  };
+
+  const syncToGitHub = async (customSnapshot = null) => {
+    setIsSyncingGitHub(true);
+    setGitHubSyncStatus('syncing');
+    try {
+      const snapshot = customSnapshot || buildFullSnapshot();
+      await pushLeaderboardToGitHub(snapshot);
+      setGitHubSyncStatus('synced');
+      triggerStatusAlert('github_success');
+      setTimeout(() => setGitHubSyncStatus('idle'), 4000);
+    } catch (err) {
+      console.error('GitHub sync error:', err);
+      setGitHubSyncStatus('error');
+      setGitHubSyncMsg(err.message || 'GitHub sync error');
+      triggerStatusAlert('github_error');
+      setTimeout(() => setGitHubSyncStatus('idle'), 6000);
+    } finally {
+      setIsSyncingGitHub(false);
+    }
+  };
+
+  // Load active dates & timer on mount, fetching live repo data
   useEffect(() => {
-    const dates = getLeaderboardDates();
-    setDatesConfig(dates);
-    setLiveLabelInput(dates.liveLabel || 'Aug 16–23');
-    setLiveStartDateInput(dates.liveStartDate || '2026-08-16');
-    setLiveEndDateInput(dates.liveEndDate || '2026-08-23');
-    setLiveEndTimeInput(dates.liveEndTime || '23:59');
-    setPastLabelInput(dates.pastLabel || 'Aug 9–16');
-  }, [isAuthenticated]);
+    if (isAuthenticated) {
+      initializeFromGitHub().then(() => {
+        const data = activeTab === 'june' ? getJuneData() : getMayData();
+        setPlayers(data);
+        setWagerGoalInput(getWagerGoal().toString());
+        setPrizePoolInput(getPrizePool(activeTab));
+        const dates = getLeaderboardDates();
+        setDatesConfig(dates);
+        setLiveLabelInput(dates.liveLabel || 'Aug 16–23');
+        setLiveStartDateInput(dates.liveStartDate || '2026-08-16');
+        setLiveEndDateInput(dates.liveEndDate || '2026-08-23');
+        setLiveEndTimeInput(dates.liveEndTime || '23:59');
+        setPastLabelInput(dates.pastLabel || 'Aug 9–16');
+      });
+    }
+  }, [isAuthenticated, activeTab]);
 
   // Live countdown tick for admin preview
   useEffect(() => {
@@ -245,6 +286,7 @@ export default function Admin() {
     const saved = saveLeaderboardDates(newDates);
     setDatesConfig(saved);
     triggerStatusAlert('success');
+    syncToGitHub();
   };
 
   // Session check on mount
@@ -253,16 +295,6 @@ export default function Admin() {
       setIsAuthenticated(true);
     }
   }, []);
-
-  // Sync state data with selected month tab / localStorage
-  useEffect(() => {
-    if (isAuthenticated) {
-      const data = activeTab === 'june' ? getJuneData() : getMayData();
-      setPlayers(data);
-      setWagerGoalInput(getWagerGoal().toString());
-      setPrizePoolInput(getPrizePool(activeTab));
-    }
-  }, [isAuthenticated, activeTab]);
 
   // Secure client-side hashing verify (SHA-256)
   const handleLogin = async (e) => {
@@ -333,12 +365,13 @@ export default function Admin() {
     setPlayers(updated);
   };
 
-  // Save changes to localStorage
-  const handleSaveChanges = () => {
+  // Save changes to localStorage and push to GitHub repo
+  const handleSaveChanges = async () => {
     saveCurrentData(players);
     saveWagerGoal(parseInt(wagerGoalInput, 10) || 1000000);
     savePrizePool(activeTab, prizePoolInput);
     handleSaveDateSettings();
+    await syncToGitHub();
   };
 
   const saveCurrentData = (data) => {
@@ -525,9 +558,9 @@ export default function Admin() {
     dragOverItem.current = null;
   }, [players]);
 
-  // Reset database back to default static mockups
-  const handleResetData = () => {
-    if (window.confirm('Reset leaderboard database to default static mockup values? Any edits will be lost.')) {
+  // Reset database back to default static mockups and push to GitHub
+  const handleResetData = async () => {
+    if (window.confirm('Reset leaderboard database to default static mockup values? Any edits will be lost and synced to GitHub.')) {
       resetData();
       const resetList = activeTab === 'june' ? getJuneData() : getMayData();
       setPlayers(resetList);
@@ -541,6 +574,7 @@ export default function Admin() {
       setLiveEndTimeInput(resetDates.liveEndTime);
       setPastLabelInput(resetDates.pastLabel);
       triggerStatusAlert('reset');
+      await syncToGitHub();
     }
   };
 
@@ -651,7 +685,39 @@ export default function Admin() {
               <p className="text-sm font-medium text-white/40 tracking-wide mt-2">Live database manager</p>
             </div>
             
-            <div className="flex gap-3">
+            <div className="flex flex-wrap items-center gap-3">
+              <button
+                onClick={() => syncToGitHub()}
+                disabled={isSyncingGitHub}
+                className={`flex items-center gap-2 px-4 py-2.5 border text-xs font-bold tracking-wide uppercase transition-all rounded-full cursor-pointer shadow-sm ${
+                  gitHubSyncStatus === 'synced'
+                    ? 'border-emerald-500/40 bg-emerald-500/15 text-emerald-400'
+                    : gitHubSyncStatus === 'error'
+                    ? 'border-rose-500/40 bg-rose-500/15 text-rose-400'
+                    : isSyncingGitHub
+                    ? 'border-accent/40 bg-accent/15 text-accent'
+                    : 'border-emerald-500/30 hover:border-emerald-500 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400'
+                }`}
+                title="Push current state directly to GitHub repository"
+              >
+                {isSyncingGitHub ? (
+                  <>
+                    <RefreshCw size={14} className="animate-spin text-accent" />
+                    <span>Pushing to GitHub...</span>
+                  </>
+                ) : gitHubSyncStatus === 'synced' ? (
+                  <>
+                    <Check size={14} className="text-emerald-400" />
+                    <span>Synced to GitHub</span>
+                  </>
+                ) : (
+                  <>
+                    <UploadCloud size={14} className="text-emerald-400" />
+                    <span>Sync with GitHub</span>
+                  </>
+                )}
+              </button>
+
               <button
                 onClick={handleExportCSV}
                 className="flex items-center gap-2.5 px-5 py-2.5 border border-white/15 hover:border-white/40 text-xs font-bold tracking-widest uppercase transition-all bg-white/5 hover:bg-white/15 rounded-full cursor-pointer text-white/90 shadow-sm"
@@ -676,14 +742,28 @@ export default function Admin() {
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0 }}
-              className={`flex items-center gap-3 border px-5 py-3.5 rounded-2xl text-xs font-bold tracking-widest uppercase max-w-md shadow-lg ${
-                saveStatus === 'success'
+              className={`flex items-center gap-3 border px-5 py-3.5 rounded-2xl text-xs font-bold tracking-wide uppercase max-w-lg shadow-lg ${
+                saveStatus === 'success' || saveStatus === 'github_success'
                   ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
+                  : saveStatus === 'github_error'
+                  ? 'bg-rose-500/10 border-rose-500/30 text-rose-400'
                   : 'bg-yellow-500/10 border-yellow-500/30 text-yellow-400'
               }`}
             >
-              <Check size={16} className="shrink-0" />
-              <span>{saveStatus === 'success' ? 'DATABASE UPDATED SUCCESSFULLY' : 'DATABASE RESET TO DEFAULT VALUES'}</span>
+              {saveStatus === 'github_error' ? (
+                <AlertTriangle size={16} className="shrink-0 text-rose-400" />
+              ) : (
+                <Check size={16} className="shrink-0" />
+              )}
+              <span>
+                {saveStatus === 'github_success'
+                  ? 'DATABASE SAVED & PUSHED TO GITHUB REPO'
+                  : saveStatus === 'github_error'
+                  ? (gitHubSyncMsg ? `GITHUB SYNC: ${gitHubSyncMsg.toUpperCase()}` : 'ERROR SYNCING WITH GITHUB')
+                  : saveStatus === 'success'
+                  ? 'DATABASE UPDATED & SAVED'
+                  : 'DATABASE RESET TO DEFAULT VALUES'}
+              </span>
             </motion.div>
           )}
 
@@ -926,19 +1006,52 @@ export default function Admin() {
                 </div>
               </div>
 
-              {/* Maintenance Tools */}
-              <div className="bg-[#16161d] border border-white/10 p-6 sm:p-7 rounded-3xl flex flex-col gap-5 shadow-sm">
+              {/* Maintenance & GitHub Tools */}
+              <div className="bg-[#16161d] border border-white/10 p-6 sm:p-7 rounded-3xl flex flex-col gap-6 shadow-sm">
                 <div className="flex items-center gap-2.5 border-b border-white/10 pb-4">
                   <Database size={16} className="text-white/70" />
-                  <span className="text-base font-display font-black tracking-wide text-white">Database tools</span>
+                  <span className="text-base font-display font-black tracking-wide text-white">Database & GitHub Sync</span>
+                </div>
+
+                {/* GitHub Token Config */}
+                <div className="flex flex-col gap-2">
+                  <div className="flex justify-between items-center">
+                    <label className="text-xs font-semibold text-white/60 tracking-wide flex items-center gap-1.5">
+                      <GitBranch size={13} className="text-white/50" />
+                      <span>GitHub Personal Access Token</span>
+                    </label>
+                    <span className={`text-[9px] font-mono px-2 py-0.5 rounded-md ${
+                      githubTokenInput ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-white/5 text-white/40'
+                    }`}>
+                      {githubTokenInput ? 'Token Connected' : 'No Token'}
+                    </span>
+                  </div>
+                  <div className="flex gap-2">
+                    <input
+                      type="password"
+                      value={githubTokenInput}
+                      onChange={(e) => setGithubTokenInput(e.target.value)}
+                      placeholder="github_pat_..."
+                      className="bg-white/[0.04] border border-white/8 focus:border-white/20 rounded-xl px-4 py-2.5 text-xs font-mono text-white tracking-wider focus:outline-none transition-colors w-full"
+                    />
+                    <button
+                      onClick={handleSaveGitHubToken}
+                      className="px-4 py-2.5 bg-white/10 hover:bg-white/20 text-white font-bold text-xs rounded-xl transition-all uppercase cursor-pointer shrink-0"
+                    >
+                      Save
+                    </button>
+                  </div>
+                  <span className="text-[10px] text-white/35">
+                    Target repo: <strong className="text-white/60">OfficialTeamAN/Hunchos (main)</strong>
+                  </span>
                 </div>
 
                 <button
                   onClick={handleResetData}
-                  className="w-full bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 hover:border-rose-500/40 text-rose-400 font-bold text-xs tracking-widest py-3.5 uppercase rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer shadow-sm active:scale-[0.99]"
+                  className="w-full bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 hover:border-rose-500/40 text-rose-400 font-bold text-xs tracking-widest py-3.5 uppercase rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer shadow-sm active:scale-[0.99] mt-2"
                 >
                   <RotateCcw size={14} />
-                  <span>Restore Mock Defaults</span>
+                  <span>Restore Mock Defaults & Sync</span>
                 </button>
               </div>
 
