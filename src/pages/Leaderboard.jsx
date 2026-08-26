@@ -935,7 +935,7 @@ export default function Leaderboard() {
 
               {/* Description */}
               <p className="text-xs sm:text-sm text-white/60 leading-relaxed font-semibold uppercase tracking-wider mb-8">
-                Click play now and start wagering on our codes to participate in the monthly leaderboard. Please check the rules below!
+                Click play now and start wagering on our codes to participate in the weekly leaderboard. Please check the rules below!
               </p>
 
               {/* Play Now Button */}
